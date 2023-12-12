@@ -151,7 +151,7 @@ int main()
     // Train the agent on the collected episodes
     for (int index = 0; index < 10; ++index)
     {
-        for (auto episode : episodes)
+        for (auto& episode : episodes)
         {
             learner(episode, policies);
         }
@@ -165,6 +165,37 @@ int main()
 
     // Once the policies are updated, you can follow the best policy to solve the cube
     // Call the on_policy function here
+
+    //posible code for on_policy function:
+    
+    //// Create a CubeState to represent the starting state
+    //CubeState startingState(false); // Pass false to create an unsolved state
+
+    //// Define the maximum number of steps to solve the cube (adjust as needed)
+    //int max_steps = 100;
+
+    //// Follow the best policy to solve the cube
+    //for (int step = 0; step < max_steps; ++step) {
+    //    // Check if the cube is already solved
+    //    if (startingState.IsSolved()) {
+    //        std::cout << "Cube is solved!" << std::endl;
+    //        break;
+    //    }
+
+    //    // Get the best action based on the current state from policies
+    //    CubeAction bestAction = policies.act(startingState);
+
+    //    // Apply the best action to the state
+    //    startingState.DoAction(bestAction);
+
+    //    std::cout << "Step " << step + 1 << ": ";
+    //    std::cout << "Action: " << static_cast<int>(bestAction) << std::endl;
+    //}
+
+    //// Check if the cube is solved after the maximum number of steps
+    //if (!startingState.IsSolved()) {
+    //    std::cout << "Cube could not be solved within the maximum number of steps." << std::endl;
+    //}
 
     return 0;
 }
