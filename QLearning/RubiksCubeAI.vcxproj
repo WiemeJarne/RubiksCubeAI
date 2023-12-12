@@ -94,7 +94,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\boost_1_67_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libboost_serialization-vc141-mt-gd-x64-1_67.lib;libboost_serialization-vc141-mt-x64-1_67.lib;libboost_wserialization-vc141-mt-gd-x64-1_67.lib;libboost_wserialization-vc141-mt-x64-1_67.lib;release_libboost_serialization-vc-mt-gd-x64-1_67.lib;release_libboost_serialization-vc-mt-x64-1_67.lib;release_libboost_wserialization-vc-mt-gd-x64-1_67.lib;release_libboost_wserialization-vc-mt-x64-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libboost_serialization-vc141-mt-gd-x64-1_67.lib;libboost_serialization-vc141-mt-x64-1_67.lib;libboost_wserialization-vc141-mt-gd-x64-1_67.lib;libboost_wserialization-vc141-mt-x64-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -113,7 +113,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\boost_1_67_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libboost_serialization-vc141-mt-gd-x64-1_67.lib;libboost_serialization-vc141-mt-x64-1_67.lib;libboost_wserialization-vc141-mt-gd-x64-1_67.lib;libboost_wserialization-vc141-mt-x64-1_67.lib;release_libboost_serialization-vc-mt-gd-x64-1_67.lib;release_libboost_serialization-vc-mt-x64-1_67.lib;release_libboost_wserialization-vc-mt-gd-x64-1_67.lib;release_libboost_wserialization-vc-mt-x64-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libboost_serialization-vc141-mt-gd-x64-1_67.lib;libboost_serialization-vc141-mt-x64-1_67.lib;libboost_wserialization-vc141-mt-gd-x64-1_67.lib;libboost_wserialization-vc141-mt-x64-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -127,7 +127,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libboost_serialization-vc141-mt-gd-x64-1_67.lib;libboost_serialization-vc141-mt-x64-1_67.lib;libboost_wserialization-vc141-mt-gd-x64-1_67.lib;libboost_wserialization-vc141-mt-x64-1_67.lib;release_libboost_serialization-vc-mt-gd-x64-1_67.lib;release_libboost_serialization-vc-mt-x64-1_67.lib;release_libboost_wserialization-vc-mt-gd-x64-1_67.lib;release_libboost_wserialization-vc-mt-x64-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libboost_serialization-vc141-mt-gd-x64-1_67.lib;libboost_serialization-vc141-mt-x64-1_67.lib;libboost_wserialization-vc141-mt-gd-x64-1_67.lib;libboost_wserialization-vc141-mt-x64-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\boost_1_67_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -147,7 +147,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\boost_1_67_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libboost_serialization-vc141-mt-gd-x64-1_67.lib;libboost_serialization-vc141-mt-x64-1_67.lib;libboost_wserialization-vc141-mt-gd-x64-1_67.lib;libboost_wserialization-vc141-mt-x64-1_67.lib;release_libboost_serialization-vc-mt-gd-x64-1_67.lib;release_libboost_serialization-vc-mt-x64-1_67.lib;release_libboost_wserialization-vc-mt-gd-x64-1_67.lib;release_libboost_wserialization-vc-mt-x64-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>release_libboost_serialization-vc-mt-1_67.lib;release_libboost_serialization-vc-mt-gd-1_67.lib;release_libboost_wserialization-vc-mt-1_67.lib;release_libboost_wserialization-vc-mt-gd-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

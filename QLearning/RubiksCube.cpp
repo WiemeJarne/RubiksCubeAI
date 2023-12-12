@@ -87,7 +87,7 @@ int main()
 
     int amountOfMovesForCurrentEpisode{};
 
-    constexpr int maxMovesPerEpisode{ 100 };
+    constexpr int maxMovesPerEpisode{ 250 };
 
     std::cout << "Starting exploration\n";
 
