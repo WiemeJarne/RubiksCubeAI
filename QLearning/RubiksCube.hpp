@@ -44,14 +44,21 @@ std::string ColorToString(Color color)
 }
 
 //all these action are in clockwise so if rotateBack is used imagine the cube with the back facing towards you and turn it clockwise
+//CW = clockwise, CCW = counterclockwise
 enum class CubeActionPosibilities
 {
-	rotateRight = 0,
-	rotateLeft = 2,
-	rotateFront = 4,
-	rotateBack = 8,
-	rotateTop = 16,
-	rotateBottom = 32
+	rotateRightCW = 0,
+	rotateLeftCW = 2,
+	rotateFrontCW = 4,
+	rotateBackCW = 8,
+	rotateTopCW = 16,
+	rotateBottomCW = 32,
+	rotateRightCCW = 64,
+	rotateLeftCCW = 128,
+	rotateFrontCCW = 256,
+	rotateBackCCW = 512,
+	rotateTopCCW = 1024,
+	rotateBottomCCW = 2048
 };
 
 struct CubeAction
@@ -142,6 +149,8 @@ struct CubeState
 
 	std::vector<Piece> pieces;
 
+	std::vector<CubeActionPosibilities> scramble; //the scramble used to get to the first state of this CubeState
+
 	CubeState()
 	{
 		if (!solvedState && !isCreatingSolvedState)
@@ -172,44 +181,142 @@ struct CubeState
 
 	void Scramble()
 	{
-		//std::cout << "New cube scramble:\n";
+		scramble.clear();
+
+		//the secondTLastAction and the lastAction are random at the start to make possible for a scramble to start with rotateRightCW
+		CubeActionPosibilities secondToLastAction{ GetRandomAction() };
+		CubeActionPosibilities lastAction{ GetRandomAction() };
+		CubeActionPosibilities action{};
 
 		//do 20 random actions to scramble the cube
 		for(int index{}; index < 20; ++index)
 		{
-			//random nr in range [0,5] to determine random action
-			int randomNr{ rand() % 6 };
-			bool clockWise{ static_cast<bool>(rand() % 2) };
-			//std::cout << "action: " << randomNr << " clockwise: " << clockWise << '\n';
-			DoAction(static_cast<CubeActionPosibilities>(randomNr), clockWise);
+			action = GetRandomAction();
+
+			//this is to make sure the same action is not repeated 3 times after each other and that the same action but in the other direction is also not done after each other
+			while (action == lastAction && action == secondToLastAction || AreOppositeActions(action, lastAction))
+				action = GetRandomAction();
+			
+			scramble.push_back(action);
+
+			secondToLastAction = lastAction;
+			lastAction = action;
+
+			DoAction(action);
 		}
 
 		if(pieces == solvedState.get()->pieces)
 			Scramble();
+
+		//PrintScramble();
 	}
 
-	void DoAction(CubeActionPosibilities action, bool clockWise)
+	static CubeActionPosibilities GetRandomAction()
+	{
+		//random nr in range [0, 12] to determine random action 
+		//the reason why the random number is used as an exponent is that the CubeActionPosibilities has to be a power of 2 for serialization
+		auto test = pow(2, rand() % 11 + 1); //+1 so the exponent cannot be 0
+		auto randomNr = static_cast<CubeActionPosibilities>(test);
+		return randomNr;
+	}
+
+	void PrintScramble()
+	{
+		std::string scrambleString{};
+
+		for (auto action : scramble)
+		{
+			scrambleString += ToString(action);
+		}
+	}
+
+	std::string ToString(CubeActionPosibilities action)
+	{
+		std::string castedMove{};
+
+		switch (action)
+		{
+		case CubeActionPosibilities::rotateRightCW:
+			castedMove += "R";
+			break;
+		case CubeActionPosibilities::rotateLeftCW:
+			castedMove += "L";
+			break;
+		case CubeActionPosibilities::rotateFrontCW:
+			castedMove += "F";
+			break;
+		case CubeActionPosibilities::rotateBackCW:
+			castedMove += "B";
+			break;
+		case CubeActionPosibilities::rotateTopCW:
+			castedMove += "U";
+			break;
+		case CubeActionPosibilities::rotateBottomCW:
+			castedMove += "D";
+			break;
+		case CubeActionPosibilities::rotateRightCCW:
+			castedMove += "R'";
+			break;
+		case CubeActionPosibilities::rotateLeftCCW:
+			castedMove += "L'";
+			break;
+		case CubeActionPosibilities::rotateFrontCCW:
+			castedMove += "F'";
+			break;
+		case CubeActionPosibilities::rotateBackCCW:
+			castedMove += "B'";
+			break;
+		case CubeActionPosibilities::rotateTopCCW:
+			castedMove += "U'";
+			break;
+		case CubeActionPosibilities::rotateBottomCCW:
+			castedMove += "D'";
+			break;
+		}
+
+		return castedMove;
+	}
+
+	void DoAction(CubeActionPosibilities action)
 	{
 		switch (action)
 		{
-		case CubeActionPosibilities::rotateRight:
-			RotateRight(clockWise);
-			return;
-		case CubeActionPosibilities::rotateLeft:
-			RotateLeft(clockWise);
-			return;
-		case CubeActionPosibilities::rotateFront:
-			RotateFront(clockWise);
-			return;
-		case CubeActionPosibilities::rotateBack:
-			RotateBack(clockWise);
-			return;
-		case CubeActionPosibilities::rotateTop:
-			RotateTop(clockWise);
-			return;
-		case CubeActionPosibilities::rotateBottom:
-			RotateBottom(clockWise);
-			return;
+		case CubeActionPosibilities::rotateRightCW:
+			RotateRight(true);
+			break;
+		case CubeActionPosibilities::rotateLeftCW:
+			RotateLeft(true);
+			break;
+		case CubeActionPosibilities::rotateFrontCW:
+			RotateFront(true);
+			break;
+		case CubeActionPosibilities::rotateBackCW:
+			RotateBack(true);
+			break;
+		case CubeActionPosibilities::rotateTopCW:
+			RotateTop(true);
+			break;
+		case CubeActionPosibilities::rotateBottomCW:
+			RotateBottom(true);
+			break;
+		case CubeActionPosibilities::rotateRightCCW:
+			RotateRight(false);
+			break;
+		case CubeActionPosibilities::rotateLeftCCW:
+			RotateLeft(false);
+			break;
+		case CubeActionPosibilities::rotateFrontCCW:
+			RotateFront(false);
+			break;
+		case CubeActionPosibilities::rotateBackCCW:
+			RotateBack(false);
+			break;
+		case CubeActionPosibilities::rotateTopCCW:
+			RotateTop(false);
+			break;
+		case CubeActionPosibilities::rotateBottomCCW:
+			RotateBottom(false);
+			break;
 		}
 	}
 
@@ -379,6 +486,15 @@ private:
 	{
 		for (auto piece : pieces)
 			ar & piece;
+	}
+
+	bool AreOppositeActions(CubeActionPosibilities action1, CubeActionPosibilities action2)
+	{
+		if(abs(static_cast<int>(action1) - static_cast<int>(action2)) == 64
+			|| abs(log2(static_cast<int>(action1)) - log2(static_cast<int>(action2))) == 6)
+		return true;
+
+		return false;
 	}
 };
 

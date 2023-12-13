@@ -83,7 +83,7 @@ int main()
     std::vector<std::deque<relearn::link<State, Action>>> episodes;
 
     // Number of episodes to generate
-    int num_episodes = 1000;
+    int amountOfEpisodes = 5000;
 
     int amountOfMovesForCurrentEpisode{};
 
@@ -94,8 +94,10 @@ int main()
     auto startTime = std::chrono::high_resolution_clock::now();
 
     //Start the exploration phase
-    for (int episode_num = 0; episode_num < num_episodes; ++episode_num) 
+    for (int episodeNr = 0; episodeNr < amountOfEpisodes; ++episodeNr) 
     {
+        std::cout << "episode: " << episodeNr << '\n';
+
         amountOfMovesForCurrentEpisode = 0;
 
         // Create a starting state for the episode with scrambling
@@ -109,13 +111,13 @@ int main()
         {
             // Randomly pick an action
             bool direction{};
-            CubeActionPosibilities action = getRandomAction(gen, direction);
+            CubeActionPosibilities action = CubeState::GetRandomAction();
 
             ++amountOfMovesForCurrentEpisode;
 
             // Apply the action to the state
             CubeState nextState{ currentState };
-            nextState.DoAction(action, direction);
+            nextState.DoAction(action);
             
             double reward{ CalculateReward(currentState, action, nextState) };
 
