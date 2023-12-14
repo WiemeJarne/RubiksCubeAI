@@ -63,6 +63,14 @@ enum class CubeActionPosibilities
 
 struct CubeAction
 {
+	CubeAction()
+		: action(GetRandomAction().action)
+	{}
+
+	CubeAction(CubeActionPosibilities _action)
+		: action{ _action }
+	{}
+
 	CubeActionPosibilities action;
 
 	std::size_t hash() const
@@ -83,6 +91,15 @@ private:
 	void serialize(Archive& ar, const unsigned int version)
 	{
 		ar & action;
+	}
+
+	static CubeAction GetRandomAction()
+	{
+		//random nr in range [0, 12] to determine random action 
+		//the reason why the random number is used as an exponent is that the CubeActionPosibilities has to be a power of 2 for serialization
+		auto test = pow(2, rand() % 11 + 1); //+1 so the exponent cannot be 0
+		auto randomNr = static_cast<CubeActionPosibilities>(test);
+		return CubeAction(randomNr);
 	}
 };
 
@@ -146,7 +163,7 @@ struct CubeState
 
 	std::vector<Piece> pieces;
 
-	std::vector<CubeActionPosibilities> scramble; //the scramble used to get to the first state of this CubeState
+	std::vector<CubeAction> scramble; //the scramble used to get to the first state of this CubeState
 
 	CubeState()
 	{
@@ -180,19 +197,18 @@ struct CubeState
 	{
 		scramble.clear();
 
-		//the secondTLastAction and the lastAction are random at the start to make possible for a scramble to start with rotateRightCW
-		CubeActionPosibilities secondToLastAction{ GetRandomAction() };
-		CubeActionPosibilities lastAction{ GetRandomAction() };
-		CubeActionPosibilities action{};
+		CubeAction secondToLastAction{};
+		CubeAction lastAction{};
+		CubeAction action{};
 
 		//do 20 random actions to scramble the cube
 		for(int index{}; index < 20; ++index)
 		{
-			action = GetRandomAction();
+			action = CubeAction();
 
 			//this is to make sure the same action is not repeated 3 times after each other and that the same action but in the other direction is also not done after each other
 			while (action == lastAction && action == secondToLastAction || AreOppositeActions(action, lastAction))
-				action = GetRandomAction();
+				action = CubeAction();
 			
 			scramble.push_back(action);
 
@@ -208,15 +224,6 @@ struct CubeState
 		//PrintScramble();
 	}
 
-	static CubeActionPosibilities GetRandomAction()
-	{
-		//random nr in range [0, 12] to determine random action 
-		//the reason why the random number is used as an exponent is that the CubeActionPosibilities has to be a power of 2 for serialization
-		auto test = pow(2, rand() % 11 + 1); //+1 so the exponent cannot be 0
-		auto randomNr = static_cast<CubeActionPosibilities>(test);
-		return randomNr;
-	}
-
 	void PrintScramble()
 	{
 		std::string scrambleString{};
@@ -227,11 +234,11 @@ struct CubeState
 		}
 	}
 
-	std::string ToString(CubeActionPosibilities action)
+	std::string ToString(CubeAction action)
 	{
 		std::string castedMove{};
 
-		switch (action)
+		switch (action.action)
 		{
 		case CubeActionPosibilities::rotateRightCW:
 			castedMove += "R";
@@ -274,9 +281,9 @@ struct CubeState
 		return castedMove;
 	}
 
-	void DoAction(CubeActionPosibilities action)
+	void DoAction(CubeAction action)
 	{
-		switch (action)
+		switch (action.action)
 		{
 		case CubeActionPosibilities::rotateRightCW:
 			RotateRight(true);
@@ -462,6 +469,24 @@ struct CubeState
 		return true;
 	}
 
+	double CalculateReward()
+	{
+		//if a piece is on the correct place reward = 1
+		double rewardForCorrectPlace = 1;
+
+		double reward{};
+
+		for (int index{}; index < pieces.size(); ++index)
+		{
+			if (pieces[index] == solvedState->pieces[index])
+			{
+				reward += rewardForCorrectPlace;
+			}
+		}
+
+		return reward;
+	}
+
 	//hash for relearn
 	std::size_t hash() const
 	{
@@ -476,7 +501,6 @@ struct CubeState
 	}
 
 private:
-
 	friend class boost::serialization::access;
 	template<class Archive>
 	void serialize(Archive& ar, const unsigned int version)
@@ -485,10 +509,10 @@ private:
 			ar & piece;
 	}
 
-	bool AreOppositeActions(CubeActionPosibilities action1, CubeActionPosibilities action2)
+	bool AreOppositeActions(CubeAction action1, CubeAction action2)
 	{
-		if(abs(static_cast<int>(action1) - static_cast<int>(action2)) == 64
-			|| abs(log2(static_cast<int>(action1)) - log2(static_cast<int>(action2))) == 6)
+		if(abs(static_cast<int>(action1.action) - static_cast<int>(action2.action)) == 64
+			|| abs(log2(static_cast<int>(action1.action)) - log2(static_cast<int>(action2.action))) == 6)
 		return true;
 
 		return false;

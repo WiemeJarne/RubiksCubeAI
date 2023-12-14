@@ -39,32 +39,6 @@ relearn::policy<State, Action>& LoadAgent()
     return policies;
 }
 
-double CalculateReward(const CubeState& currentState, CubeActionPosibilities action, const CubeState& nextState)
-{
-    //if a piece is on the correct place in the nextState reward = 2
-    //if a piece is not in the correct place anymore in the nextState reward = -1
-    double rewardForCorrectPlace = 1;
-    double rewardForNotCorrectPlaceAnyMore = -1;
-
-    double reward{};
-
-    for (int index{}; index < currentState.pieces.size(); ++index)
-    {
-        if (nextState.pieces[index] == nextState.solvedState->pieces[index])
-        {
-            reward += rewardForCorrectPlace;
-        }
-
-        if (currentState.pieces[index] == nextState.solvedState->pieces[index]
-            && nextState.pieces[index] != nextState.solvedState->pieces[index])
-        {
-            reward += rewardForNotCorrectPlaceAnyMore;
-        }
-    }
-
-    return reward;
-}
-
 void TrainAgent()
 {
     //store policies and episodes
@@ -91,30 +65,31 @@ void TrainAgent()
         amountOfMovesForCurrentEpisode = 0;
 
         // Create a starting state for the episode with scrambling
-        State currentState{ CubeState(true) };
+        CubeState current{ true };
+        State stateNow{ State(current) };
 
         // Create a new episode (relearn::markov_chain)
         std::deque<relearn::link<State, Action>> episode;
 
         // Perform offline exploration until a solved state is found
-        while (!currentState.trait().IsSolved() && amountOfMovesForCurrentEpisode < maxMovesPerEpisode)
+        while (!current.IsSolved() && amountOfMovesForCurrentEpisode < maxMovesPerEpisode)
         {
-            // Randomly pick an action
-            bool direction{};
-            CubeActionPosibilities action = CubeState::GetRandomAction();
-
             ++amountOfMovesForCurrentEpisode;
 
-            // Apply the action to the state
-            State nextState{ currentState };
-            nextState.trait().DoAction(action);
+            // Randomly pick an action
+            bool direction{};
+            CubeAction action = CubeAction();
 
-            double reward{ CalculateReward(currentState.trait(), action, nextState.trait())};            
+            current.DoAction(action);
 
-            // Add the link to the episode
-            episode.emplace_back(relearn::link<State, Action>{ currentState, Action(CubeAction{ action }) });
+            // Create the action using CubeAction as trait
+            Action actionNow = Action(action);
 
-            currentState = State(reward, nextState.trait());
+            // Add the state to the episode
+            episode.emplace_back(relearn::link<State, Action>{stateNow, actionNow});
+
+            // update current state to next state
+            stateNow = State(current.CalculateReward(), current);
         }
 
         // Store the episode in the list of experienced episodes
