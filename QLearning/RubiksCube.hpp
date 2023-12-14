@@ -65,8 +65,6 @@ struct CubeAction
 {
 	CubeActionPosibilities action;
 
-	bool clockWise;
-
 	std::size_t hash() const
 	{
 		size_t seed = 0;
@@ -85,7 +83,6 @@ private:
 	void serialize(Archive& ar, const unsigned int version)
 	{
 		ar & action;
-		ar & clockWise;
 	}
 };
 

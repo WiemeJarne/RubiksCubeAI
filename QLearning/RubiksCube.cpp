@@ -17,10 +17,7 @@ bool CubeState::isCreatingSolvedState;
 using State = relearn::state<CubeState>;
 using Action = relearn::action<CubeAction>;
 
-// policy memory
-relearn::policy<State, Action> policies;
-
-void SaveAgent()
+void SaveAgent(const relearn::policy<State, Action>& policies)
 {
     std::cout << "Saving agent to agent.policy\n";
 
@@ -31,20 +28,15 @@ void SaveAgent()
     std::cout << "Agent saved to agent.policy\n";
 }
 
-void LoadAgent()
+relearn::policy<State, Action>& LoadAgent()
 {
+    relearn::policy<State, Action> policies{};
+
     std::ifstream ifs("agent.policy");
     boost::archive::text_iarchive ia(ifs);
     ia >> policies;
-}
 
-CubeActionPosibilities getRandomAction(std::mt19937& gen, bool& outDirection) {
-    // Generate a random number in the range [0, 5] to represent each action
-    int randomNr = std::uniform_int_distribution<int>(0, 5)(gen);
-
-    outDirection = rand() % 2;
-
-    return static_cast<CubeActionPosibilities>(randomNr);
+    return policies;
 }
 
 double CalculateReward(const CubeState& currentState, CubeActionPosibilities action, const CubeState& nextState)
@@ -73,41 +65,39 @@ double CalculateReward(const CubeState& currentState, CubeActionPosibilities act
     return reward;
 }
 
-int main()
+void TrainAgent()
 {
-    // Create a random number generator
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    //store policies and episodes
+    relearn::policy<State, Action> policies;
 
-    // Create a list to store episodes
-    std::vector<std::deque<relearn::link<State, Action>>> episodes;
+    std::vector<std::deque<relearn::link<State, Action>>> episodes{};
 
     // Number of episodes to generate
-    int amountOfEpisodes = 5000;
+    int amountOfEpisodes{ 500'000 };
 
     int amountOfMovesForCurrentEpisode{};
 
-    constexpr int maxMovesPerEpisode{ 250 };
+    constexpr int maxMovesPerEpisode{ 100 };
 
     std::cout << "Starting exploration\n";
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
     //Start the exploration phase
-    for (int episodeNr = 0; episodeNr < amountOfEpisodes; ++episodeNr) 
+    for (int episodeNr = 0; episodeNr < amountOfEpisodes; ++episodeNr)
     {
         std::cout << "episode: " << episodeNr << '\n';
 
         amountOfMovesForCurrentEpisode = 0;
 
         // Create a starting state for the episode with scrambling
-        CubeState currentState{ true };
+        State currentState{ CubeState(true) };
 
         // Create a new episode (relearn::markov_chain)
         std::deque<relearn::link<State, Action>> episode;
 
         // Perform offline exploration until a solved state is found
-        while (!currentState.IsSolved() && amountOfMovesForCurrentEpisode < maxMovesPerEpisode)
+        while (!currentState.trait().IsSolved() && amountOfMovesForCurrentEpisode < maxMovesPerEpisode)
         {
             // Randomly pick an action
             bool direction{};
@@ -116,21 +106,19 @@ int main()
             ++amountOfMovesForCurrentEpisode;
 
             // Apply the action to the state
-            CubeState nextState{ currentState };
-            nextState.DoAction(action);
-            
-            double reward{ CalculateReward(currentState, action, nextState) };
+            State nextState{ currentState };
+            nextState.trait().DoAction(action);
 
-            // Create a link for the episode
-            State state{ reward, currentState };
-            relearn::link<State, Action> link{ state, CubeAction{ action } };
+            double reward{ CalculateReward(currentState.trait(), action, nextState.trait())};            
 
             // Add the link to the episode
-            episode.push_back(link);
+            episode.emplace_back(relearn::link<State, Action>{ currentState, Action(CubeAction{ action }) });
+
+            currentState = State(reward, nextState.trait());
         }
 
         // Store the episode in the list of experienced episodes
-        episodes.push_back(episode);
+        episodes.emplace_back(episode);
     }
 
     auto endTime = std::chrono::high_resolution_clock::now();
@@ -140,7 +128,7 @@ int main()
     std::cout << "Time taken for exploration: " << explorationTime << '\n';
 
     // Q-learning parameters
-    double learningRate = 0.1; // Learning rate (alpha)
+    double learningRate = 0.9; // Learning rate (alpha)
     double discountRate = 0.9; // Discount rate (gamma)
 
     // Create a Q-learning agent
@@ -153,51 +141,59 @@ int main()
     // Train the agent on the collected episodes
     for (int index = 0; index < 10; ++index)
     {
+        std::cout << "Train loop " << index << " started\n";
         for (auto& episode : episodes)
-        {
             learner(episode, policies);
-        }
     }
 
     endTime = std::chrono::high_resolution_clock::now();
 
     std::cout << "Time taken for training: " << explorationTime + std::chrono::duration_cast<std::chrono::duration<double>>((endTime - startTime)).count() << '\n';
 
-    SaveAgent();
+    SaveAgent(policies);
+}
 
-    // Once the policies are updated, you can follow the best policy to solve the cube
-    // Call the on_policy function here
+void UseAgent()
+{
+    relearn::policy<State, Action> policies = LoadAgent();
 
-    //posible code for on_policy function:
-    
-    //// Create a CubeState to represent the starting state
-    //CubeState startingState(false); // Pass false to create an unsolved state
+    // Create a CubeState to represent the starting state
+    CubeState cubeToSolve(true);
 
-    //// Define the maximum number of steps to solve the cube (adjust as needed)
-    //int max_steps = 100;
+    // Define the maximum number of steps to solve the cube (adjust as needed)
+    int max_steps = 100;
 
-    //// Follow the best policy to solve the cube
-    //for (int step = 0; step < max_steps; ++step) {
-    //    // Check if the cube is already solved
-    //    if (startingState.IsSolved()) {
-    //        std::cout << "Cube is solved!" << std::endl;
-    //        break;
-    //    }
+    // Follow the best policy to solve the cube
+    for (int step = 0; step < max_steps; ++step)
+    {
+        // Check if the cube is already solved
+        if (cubeToSolve.IsSolved()) 
+        {
+            std::cout << "Cube is solved!\n";
+            break;
+        }
 
-    //    // Get the best action based on the current state from policies
-    //    CubeAction bestAction = policies.act(startingState);
+        // Get the best action based on the current state from policies
+        auto bestAction = policies.best_action(State(cubeToSolve));
+        
+        // Apply the best action to the state
+        if (bestAction)
+        {
+            cubeToSolve.DoAction(bestAction.get()->trait().action);
+            std::cout << "Best action found\n";
+        }
+    }
 
-    //    // Apply the best action to the state
-    //    startingState.DoAction(bestAction);
+    // Check if the cube is solved after the maximum number of steps
+    if (!cubeToSolve.IsSolved())
+        std::cout << "Cube could not be solved within the maximum number of steps.\n";
+}
 
-    //    std::cout << "Step " << step + 1 << ": ";
-    //    std::cout << "Action: " << static_cast<int>(bestAction) << std::endl;
-    //}
+int main()
+{
+    //TrainAgent();
 
-    //// Check if the cube is solved after the maximum number of steps
-    //if (!startingState.IsSolved()) {
-    //    std::cout << "Cube could not be solved within the maximum number of steps." << std::endl;
-    //}
+    UseAgent();
 
     return 0;
 }
