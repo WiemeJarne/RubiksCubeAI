@@ -28,30 +28,41 @@ void SaveAgent(const relearn::policy<State, Action>& policies)
     std::cout << "Agent saved to agent.policy\n";
 }
 
-relearn::policy<State, Action>& LoadAgent()
+relearn::policy<State, Action> LoadAgent()
 {
+    std::cout << "Loading agent from agent.policy\n";
+
     relearn::policy<State, Action> policies{};
 
     std::ifstream ifs("agent.policy");
     boost::archive::text_iarchive ia(ifs);
     ia >> policies;
 
+    std::cout << "Successfully loaded agent from agent.policy\n";
+
     return policies;
 }
 
-void TrainAgent()
+void TrainAgent(bool trainNewAgent) //when true then the previous trained agent will be overridden
 {
     //store policies and episodes
     relearn::policy<State, Action> policies;
 
+    if (!trainNewAgent)
+        policies = LoadAgent();
+
+    std::mt19937 generator
+    (
+        static_cast<std::size_t>
+        (
+            std::chrono::high_resolution_clock::now().time_since_epoch().count()
+            )
+    );
+
     std::vector<std::deque<relearn::link<State, Action>>> episodes{};
 
     // Number of episodes to generate
-    int amountOfEpisodes{ 500'000 };
-
-    int amountOfMovesForCurrentEpisode{};
-
-    constexpr int maxMovesPerEpisode{ 100 };
+    int amountOfEpisodes{ 500 };
 
     std::cout << "Starting exploration\n";
 
@@ -62,23 +73,21 @@ void TrainAgent()
     {
         std::cout << "episode: " << episodeNr << '\n';
 
-        amountOfMovesForCurrentEpisode = 0;
-
         // Create a starting state for the episode with scrambling
-        CubeState current{ true };
+        CubeState current{ true, generator };
         State stateNow{ State(current) };
 
         // Create a new episode (relearn::markov_chain)
         std::deque<relearn::link<State, Action>> episode;
 
-        // Perform offline exploration until a solved state is found
-        while (!current.IsSolved() && amountOfMovesForCurrentEpisode < maxMovesPerEpisode)
-        {
-            ++amountOfMovesForCurrentEpisode;
+        bool stop = false;
 
+        // Explore while Reward is zero
+        // and keep populating the episode with states and actions
+        while (!current.IsSolved() && !stop)
+        {
             // Randomly pick an action
-            bool direction{};
-            CubeAction action = CubeAction();
+            CubeAction action = CubeAction(generator);
 
             current.DoAction(action);
 
@@ -89,7 +98,10 @@ void TrainAgent()
             episode.emplace_back(relearn::link<State, Action>{stateNow, actionNow});
 
             // update current state to next state
-            stateNow = State(current.CalculateReward(), current);
+            stateNow = State(current.reward, current);
+
+            if (current.reward != 0)
+                stop = true;
         }
 
         // Store the episode in the list of experienced episodes
@@ -130,10 +142,18 @@ void TrainAgent()
 
 void UseAgent()
 {
+    std::mt19937 generator
+    (
+        static_cast<std::size_t>
+        (
+            std::chrono::high_resolution_clock::now().time_since_epoch().count()
+        )
+    );
+
     relearn::policy<State, Action> policies = LoadAgent();
 
     // Create a CubeState to represent the starting state
-    CubeState cubeToSolve(true);
+    CubeState cubeToSolve{ true, generator };
 
     // Define the maximum number of steps to solve the cube (adjust as needed)
     int max_steps = 100;
@@ -157,6 +177,12 @@ void UseAgent()
             cubeToSolve.DoAction(bestAction.get()->trait().action);
             std::cout << "Best action found\n";
         }
+        //otherwise do a random action
+        else
+        {
+            cubeToSolve.DoAction(CubeAction(generator));
+            std::cout << "No best action found, doing random action\n";
+        }
     }
 
     // Check if the cube is solved after the maximum number of steps
@@ -166,9 +192,9 @@ void UseAgent()
 
 int main()
 {
-    //TrainAgent();
+    TrainAgent(true);
 
-    UseAgent();
+    //UseAgent();
 
     return 0;
 }

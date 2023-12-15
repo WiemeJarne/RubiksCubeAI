@@ -63,8 +63,8 @@ enum class CubeActionPosibilities
 
 struct CubeAction
 {
-	CubeAction()
-		: action(GetRandomAction().action)
+	CubeAction(std::mt19937& generator)
+		: action(GetRandomAction(generator).action)
 	{}
 
 	CubeAction(CubeActionPosibilities _action)
@@ -72,13 +72,6 @@ struct CubeAction
 	{}
 
 	CubeActionPosibilities action;
-
-	std::size_t hash() const
-	{
-		size_t seed = 0;
-		relearn::hash_combine(seed, std::hash<int>()(static_cast<int>(action)));
-		return seed;
-	}
 
 	bool operator==(const CubeAction& rhs) const
 	{
@@ -93,18 +86,27 @@ private:
 		ar & action;
 	}
 
-	static CubeAction GetRandomAction()
+	static CubeAction GetRandomAction(std::mt19937& generator)
 	{
+		std::uniform_int_distribution<unsigned int> dist(1, 11);
+
 		//random nr in range [0, 12] to determine random action 
 		//the reason why the random number is used as an exponent is that the CubeActionPosibilities has to be a power of 2 for serialization
-		auto test = pow(2, rand() % 11 + 1); //+1 so the exponent cannot be 0
-		auto randomNr = static_cast<CubeActionPosibilities>(test);
+		auto randomNr = static_cast<CubeActionPosibilities>(pow(2, dist(generator)));
 		return CubeAction(randomNr);
 	}
 };
 
 struct Piece
 {
+	Piece() = default;
+
+	Piece(Color _side1, Color _side2, Color _side3)
+		: side1{ _side1 }
+		, side2{ _side2 }
+		, side3{ _side3 }
+	{}
+
 	//see cube2x2x2.png to see which side of the piece is what
 	Color side1;
 	Color side2;
@@ -161,9 +163,11 @@ struct CubeState
 	static std::unique_ptr<CubeState> solvedState;
 	static bool isCreatingSolvedState;
 
-	std::vector<Piece> pieces;
+	std::vector<std::shared_ptr<Piece>> pieces{};
 
 	std::vector<CubeAction> scramble; //the scramble used to get to the first state of this CubeState
+
+	double reward{};
 
 	CubeState()
 	{
@@ -174,41 +178,41 @@ struct CubeState
 		}
 
 		//add all the pieces in a their correct place
-		pieces.push_back({ Color::green, Color::red, Color::yellow });
-		pieces.push_back({ Color::orange, Color::green, Color::yellow });
-		pieces.push_back({ Color::red, Color::green, Color::white });
-		pieces.push_back({ Color::green, Color::orange, Color::white });
-		pieces.push_back({ Color::red, Color::blue, Color::yellow });
-		pieces.push_back({ Color::blue, Color::orange, Color::yellow });
-		pieces.push_back({ Color::blue, Color::red, Color::white });
-		pieces.push_back({ Color::orange, Color::blue, Color::white });
+		pieces.push_back(std::make_shared<Piece>(Color::green, Color::red, Color::yellow));
+		pieces.push_back(std::make_shared<Piece>(Color::orange, Color::green, Color::yellow));
+		pieces.push_back(std::make_shared<Piece>(Color::red, Color::green, Color::white));
+		pieces.push_back(std::make_shared<Piece>(Color::green, Color::orange, Color::white));
+		pieces.push_back(std::make_shared<Piece>(Color::red, Color::blue, Color::yellow));
+		pieces.push_back(std::make_shared<Piece>(Color::blue, Color::orange, Color::yellow));
+		pieces.push_back(std::make_shared<Piece>(Color::blue, Color::red, Color::white));
+		pieces.push_back(std::make_shared<Piece>(Color::orange, Color::blue, Color::white));
 	}
 
-	CubeState(bool scramble)
+	CubeState(bool scramble, std::mt19937& generator)
 		: CubeState()
 	{
 		if (scramble)
 		{
-			Scramble();
+			Scramble(generator);
 		}
 	}
 
-	void Scramble()
+	void Scramble(std::mt19937& generator)
 	{
 		scramble.clear();
 
-		CubeAction secondToLastAction{};
-		CubeAction lastAction{};
-		CubeAction action{};
+		CubeAction secondToLastAction{ generator }; //these are randomized because otherwise a scramble would never start with rotateRightCW (the default value)
+		CubeAction lastAction{ generator };
+		CubeAction action{ generator };
 
 		//do 20 random actions to scramble the cube
 		for(int index{}; index < 20; ++index)
 		{
-			action = CubeAction();
+			action = CubeAction(generator);
 
 			//this is to make sure the same action is not repeated 3 times after each other and that the same action but in the other direction is also not done after each other
 			while (action == lastAction && action == secondToLastAction || AreOppositeActions(action, lastAction))
-				action = CubeAction();
+				action = CubeAction(generator);
 			
 			scramble.push_back(action);
 
@@ -218,7 +222,7 @@ struct CubeState
 			DoAction(action);
 		}
 
-		if(pieces == solvedState.get()->pieces)
+		if(pieces == solvedState->pieces)
 			Scramble();
 
 		//PrintScramble();
@@ -322,11 +326,13 @@ struct CubeState
 			RotateBottom(false);
 			break;
 		}
+
+		reward = CalculateReward();
 	}
 
 	void RotateRight(bool clockWise)
 	{
-		Piece tempPiece = pieces[1];
+		auto tempPiece = pieces[1];
 
 		if (clockWise)
 		{
@@ -347,7 +353,7 @@ struct CubeState
 
 	void RotateLeft(bool clockWise)
 	{
-		Piece tempPiece = pieces[0];
+		auto tempPiece = pieces[0];
 
 		if (clockWise)
 		{
@@ -368,7 +374,7 @@ struct CubeState
 
 	void RotateFront(bool clockWise)
 	{
-		Piece tempPiece = pieces[0];
+		auto tempPiece = pieces[0];
 
 		if (clockWise)
 		{
@@ -389,7 +395,7 @@ struct CubeState
 
 	void RotateBack(bool clockWise)
 	{
-		Piece tempPiece = pieces[4];
+		auto tempPiece = pieces[4];
 
 		if (clockWise)
 		{
@@ -410,7 +416,7 @@ struct CubeState
 
 	void RotateTop(bool clockWise)
 	{
-		Piece tempPiece = pieces[0];
+		auto tempPiece = pieces[0];
 
 		if (clockWise)
 		{
@@ -431,7 +437,7 @@ struct CubeState
 
 	void RotateBottom(bool clockWise)
 	{
-		Piece tempPiece = pieces[2];
+		auto tempPiece = pieces[2];
 
 		if (clockWise)
 		{
@@ -469,6 +475,24 @@ struct CubeState
 		return true;
 	}
 
+private:
+	friend class boost::serialization::access;
+	template<class Archive>
+	void serialize(Archive& ar, const unsigned int version)
+	{
+		for (auto& piece : pieces)
+			ar & *piece;
+	}
+
+	bool AreOppositeActions(CubeAction action1, CubeAction action2)
+	{
+		if(abs(static_cast<int>(action1.action) - static_cast<int>(action2.action)) == 64
+			|| abs(log2(static_cast<int>(action1.action)) - log2(static_cast<int>(action2.action))) == 6)
+		return true;
+
+		return false;
+	}
+
 	double CalculateReward()
 	{
 		//if a piece is on the correct place reward = 1
@@ -486,37 +510,6 @@ struct CubeState
 
 		return reward;
 	}
-
-	//hash for relearn
-	std::size_t hash() const
-	{
-		std::size_t seed = 0;
-		for (const auto& piece : pieces) {
-			// Combine the hash of each piece into the seed
-			relearn::hash_combine(seed, std::hash<Color>{}(piece.side1));
-			relearn::hash_combine(seed, std::hash<Color>{}(piece.side2));
-			relearn::hash_combine(seed, std::hash<Color>{}(piece.side3));
-		}
-		return seed;
-	}
-
-private:
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive& ar, const unsigned int version)
-	{
-		for (auto piece : pieces)
-			ar & piece;
-	}
-
-	bool AreOppositeActions(CubeAction action1, CubeAction action2)
-	{
-		if(abs(static_cast<int>(action1.action) - static_cast<int>(action2.action)) == 64
-			|| abs(log2(static_cast<int>(action1.action)) - log2(static_cast<int>(action2.action))) == 6)
-		return true;
-
-		return false;
-	}
 };
 
 namespace std
@@ -525,7 +518,14 @@ namespace std
 	{
 		std::size_t operator()(CubeState const& arg) const
 		{
-			return arg.hash();
+			std::size_t seed = 0;
+			for (auto& piece : arg.pieces)
+			{
+				relearn::hash_combine(seed, piece->side1);
+				relearn::hash_combine(seed, piece->side2);
+				relearn::hash_combine(seed, piece->side3);
+			}
+			return seed;
 		}
 	};
 
@@ -533,7 +533,9 @@ namespace std
 	{
 		std::size_t operator()(CubeAction const& arg) const
 		{
-			return arg.hash();
+			std::size_t seed = 0;
+			relearn::hash_combine(seed, arg.action);
+			return seed;
 		}
 	};
 }
