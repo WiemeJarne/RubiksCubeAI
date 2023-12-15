@@ -63,6 +63,8 @@ enum class CubeActionPosibilities
 
 struct CubeAction
 {
+	CubeAction() = default;
+
 	CubeAction(std::mt19937& generator)
 		: action(GetRandomAction(generator).action)
 	{}
@@ -223,7 +225,7 @@ struct CubeState
 		}
 
 		if(pieces == solvedState->pieces)
-			Scramble();
+			Scramble(generator);
 
 		//PrintScramble();
 	}

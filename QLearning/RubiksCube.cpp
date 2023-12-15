@@ -53,10 +53,10 @@ void TrainAgent(bool trainNewAgent) //when true then the previous trained agent 
 
     std::mt19937 generator
     (
-        static_cast<std::size_t>
+        static_cast<unsigned int>
         (
             std::chrono::high_resolution_clock::now().time_since_epoch().count()
-            )
+        )
     );
 
     std::vector<std::deque<relearn::link<State, Action>>> episodes{};
@@ -144,7 +144,7 @@ void UseAgent()
 {
     std::mt19937 generator
     (
-        static_cast<std::size_t>
+        static_cast<unsigned int>
         (
             std::chrono::high_resolution_clock::now().time_since_epoch().count()
         )
