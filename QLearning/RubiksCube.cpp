@@ -62,7 +62,11 @@ void TrainAgent(bool trainNewAgent) //when true then the previous trained agent 
     std::vector<std::deque<relearn::link<State, Action>>> episodes{};
 
     // Number of episodes to generate
-    int amountOfEpisodes{ 1 };
+    int amountOfEpisodes{ 500'000 };
+
+    int maxAmountOfMovesPerEpisode{ 100 };
+    
+    int amountOfMovesInCurrentEpisode{};
 
     std::cout << "Starting exploration\n";
 
@@ -73,9 +77,13 @@ void TrainAgent(bool trainNewAgent) //when true then the previous trained agent 
     {
         std::cout << "episode: " << episodeNr << '\n';
 
+        amountOfMovesInCurrentEpisode = 0;
+
         // Create a starting state for the episode with scrambling
         CubeState current{ true, generator };
         State stateNow{ State(current) };
+        
+        CubeState next{ current };
 
         // Create a new episode (relearn::markov_chain)
         std::deque<relearn::link<State, Action>> episode;
@@ -84,12 +92,14 @@ void TrainAgent(bool trainNewAgent) //when true then the previous trained agent 
 
         // Explore while Reward is zero
         // and keep populating the episode with states and actions
-        while (!current.IsSolved() && !stop)
+        while (!current.IsSolved() && !stop && amountOfMovesInCurrentEpisode < maxAmountOfMovesPerEpisode)
         {
+            ++amountOfMovesInCurrentEpisode;
+
             // Randomly pick an action
             CubeAction action = CubeAction(generator);
 
-            current.DoAction(action);
+            next.DoAction(action);
 
             // Create the action using CubeAction as trait
             Action actionNow = Action(action);
@@ -97,11 +107,14 @@ void TrainAgent(bool trainNewAgent) //when true then the previous trained agent 
             // Add the state to the episode
             episode.emplace_back(relearn::link<State, Action>{stateNow, actionNow});
 
-            // update current state to next state
-            stateNow = State(current.reward, current);
-
-            if (current.reward != 0)
+            // update current state to next state if the reward was not zero
+            if (next.reward != 0)
+            {
+                stateNow = State(next.reward, current);
                 stop = true;
+            }
+            // if the reward was zero set next back to current and try again until a non zero reward is found for current
+            else next = current;
         }
 
         // Store the episode in the list of experienced episodes
