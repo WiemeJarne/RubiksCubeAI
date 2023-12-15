@@ -62,14 +62,14 @@ void TrainAgent(bool trainNewAgent) //when true then the previous trained agent 
     std::vector<std::deque<relearn::link<State, Action>>> episodes{};
 
     // Number of episodes to generate
-    int amountOfEpisodes{ 500 };
+    int amountOfEpisodes{ 1 };
 
     std::cout << "Starting exploration\n";
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
     //Start the exploration phase
-    for (int episodeNr = 0; episodeNr < amountOfEpisodes; ++episodeNr)
+    for (int episodeNr{ 0 }; episodeNr < amountOfEpisodes; ++episodeNr)
     {
         std::cout << "episode: " << episodeNr << '\n';
 
@@ -131,6 +131,9 @@ void TrainAgent(bool trainNewAgent) //when true then the previous trained agent 
         std::cout << "Train loop " << index << " started\n";
         for (auto& episode : episodes)
             learner(episode, policies);
+
+        //save the agent after each loop to be safe
+        SaveAgent(policies);
     }
 
     endTime = std::chrono::high_resolution_clock::now();
