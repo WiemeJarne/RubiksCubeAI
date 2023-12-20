@@ -33,7 +33,6 @@ void DNA::CalculateFitness(const CubeState& target)
 	int score{};
 
 	bool layerOne{ true };
-	bool layerTwo{ true };
 
 	const int amountOfPieces{ static_cast<int>(target.pieces.size()) };
 
@@ -48,7 +47,7 @@ void DNA::CalculateFitness(const CubeState& target)
 			if (target.pieces[index]->colors[colorIndex] != m_Cube.pieces[index]->colors[colorIndex])
 			{
 				equal = false;
-				break;
+				continue;
 			}
 		}
 
@@ -56,30 +55,20 @@ void DNA::CalculateFitness(const CubeState& target)
 		if (index == 2 || index == 3 || index == 6 || index == 7)
 			isInLayerOne = true;
 
-		//if the piece is not correct check in what layer it is
-		if (!equal)
-		{
-			//is in bottom layer -> layerOne is false (not finnished) else the piece is in top layer (layerTwo) and that layer is not finnished
-			if (isInLayerOne) layerOne = false;
-			else layerTwo = false;
-		}
+		//if the piece is in bottom layer and the piece is not correct -> layerOne is false (not finnished)
+		if (isInLayerOne && !equal)
+			layerOne = false;
 
 		if (equal && layerOne) ++score;
-		if (equal && isInLayerOne && !layerOne) ++score;
-		if (equal && layerOne && layerTwo && !layerOne) ++score;
 	}
 
 	//put emphasis on building layer by layer
 	if (layerOne)
-	{
-		score += 2;
-		if (layerTwo) score += 2;
-	}
+		score *= 2;
 
 	m_Fitness = static_cast<int>(pow(score, 3));
 
 	m_LayerOne = layerOne;
-	m_LayerTwo = layerTwo;
 }
 
 DNA DNA::Crossover(DNA partner)
@@ -115,7 +104,7 @@ void DNA::Mutate(float mutationRate)
 
 	for (int index{ startIndex }; index < amountOfGenes - m_RestictedTurns; ++index)
 	{
-		if (rand() / RAND_MAX < mutationRate)
+		if (static_cast<float>(rand()) / RAND_MAX < mutationRate)
 		{
 			newGenes[index] = CubeAction(m_Generator);
 		}

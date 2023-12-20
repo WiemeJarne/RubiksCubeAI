@@ -22,7 +22,7 @@ int main()
 
     CubeState target{};
     int populationMaxSize{ 1000 };
-    float mutationRate{};
+    float mutationRate{ 0.2f };
     int turns{ 50 };
     int restictedTurns{ 40 };
     int totalGenerations{};
