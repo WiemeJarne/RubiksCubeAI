@@ -114,12 +114,10 @@ class DNA {
         //println(layerOne + " " + layerTwo);
         if(genesArr[i] != '\'')
           genesArr[i] = rotations[ floor( random( rotations.length ) ) ];
-        else if(layerOne) {
+        else {
           char[] rotationsAdditional = {'f', 'b', 'u', 'd', 'l', 'r', '\''};
           if(i < genesArr.length -1 && genesArr[i-1] != '\'' && genesArr[i] != '\'' && genesArr[i+1] != '\'')
             genesArr[i] = rotationsAdditional[ floor( random( rotationsAdditional.length ) ) ];
-          else if(genesArr[i] != '\'')
-            genesArr[i] = rotations[ floor( random( rotations.length ) ) ];
           //println(i);
         }
         
