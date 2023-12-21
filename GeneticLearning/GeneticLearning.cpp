@@ -40,7 +40,7 @@ int main()
 
     bool stop{};
 
-    CubeState currBestCube{ true, generator }, prevBestCube{ true, generator };
+    CubeState currBestCube{}, prevBestCube{};
 
     int highestFitness{};
 
@@ -64,6 +64,7 @@ int main()
             std::cout << "Fitness goal: " << algorithm.m_PerfectScore << '\n';
             std::cout << "Amount of turns: " << turns - restictedTurns << '\n';
             std::cout << "Generation: " << totalGenerations << '\n';
+            std::cout << "Best solve : " << best.m_Genes.substr(0, turns - restictedTurns) << '\n';
         }
 
         if (!algorithm.m_Finnished)

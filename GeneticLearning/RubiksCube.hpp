@@ -214,39 +214,58 @@ struct CubeState
 		}
 	}
 	
-	CubeState(bool scramble, std::mt19937& generator)
+	/*CubeState(bool scramble, std::mt19937& generator)
 		: CubeState()
 	{
 		if (scramble)
 		{
 			Scramble(generator);
 		}
-	}
+	}*/
 
-	CubeState(const std::vector<CubeAction>& scramble)
+	/*CubeState(const std::vector<CubeAction>& scramble)
 		: CubeState()
 	{
 		Scramble(scramble);
-	}
+	}*/
 
-	void Scramble(std::mt19937& generator, int amountOfTurns = 20)
-	{
-		scramble.clear();
+	//void Scramble(std::mt19937& generator, int amountOfTurns = 20)
+	//{
+	//	scramble.clear();
 
-		scramble = GenerateScramble(generator, amountOfTurns);
+	//	scramble = GenerateScramble(generator, amountOfTurns);
 
-		Scramble(scramble);
+	//	Scramble(scramble);
 
-		//PrintScramble();
-	}
+	//	//PrintScramble();
+	//}
 
-	void Scramble(const std::vector<CubeAction>& _scramble)
+	/*void Scramble(const std::vector<CubeAction>& _scramble)
 	{
 		scramble = _scramble;
 
 		for (const CubeAction& action : _scramble)
 		{
 			DoAction(action);
+		}
+	}*/
+
+	void Scramble(const std::string& _scramble)
+	{
+		int currentIndex{};
+
+		while (currentIndex < _scramble.size())
+		{
+			if (currentIndex < _scramble.size() - 1 && _scramble[currentIndex + 1] == '\'')
+			{
+				DoAction(_scramble.substr(currentIndex, 2));
+				currentIndex += 2;
+			}
+			else
+			{
+				DoAction(_scramble.substr(currentIndex, 1));
+				++currentIndex;
+			}
 		}
 	}
 
@@ -273,6 +292,18 @@ struct CubeState
 		}
 
 		return generatedScramble;
+	}
+
+	const std::string GenerateScramble(int amountOfTurns, std::mt19937& generator)
+	{
+		auto _scramble{ GenerateScramble(generator, amountOfTurns) };
+
+		std::string scrambleString{};
+
+		for (const CubeAction& action : _scramble)
+			scrambleString += ToString(action);
+
+		return scrambleString;
 	}
 
 	void PrintScramble()
@@ -332,7 +363,7 @@ struct CubeState
 		return castedMove;
 	}
 
-	void DoAction(CubeAction action)
+	/*void DoAction(CubeAction action)
 	{
 		switch (action.action)
 		{
@@ -375,6 +406,27 @@ struct CubeState
 		}
 
 		reward = CalculateReward();
+	}*/
+
+	void DoAction(const std::string& action)
+	{
+		bool isCCW{};
+
+		if (action.size() == 2)
+			isCCW = true;
+
+		if (action[0] == 'R')
+			RotateRight(isCCW);
+		else if (action[0] == 'L')
+			RotateLeft(isCCW);
+		else if (action[0] == 'U')
+			RotateTop(isCCW);
+		else if (action[0] == 'D')
+			RotateBottom(isCCW);
+		else if (action[0] == 'F')
+			RotateFront(isCCW);
+		else if (action[0] == 'B')
+			RotateBack(isCCW);
 	}
 
 	void RotateRight(bool clockWise)

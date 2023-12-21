@@ -1,27 +1,25 @@
 #include "DNA.hpp"
 
-DNA::DNA(int turns, const std::vector<CubeAction>& ogScramble, std::mt19937& generator)
+DNA::DNA(int turns, const std::string& ogScramble, std::mt19937& generator)
 {
 	m_Generator = generator;
-	m_Cube = CubeState(false, generator);
+	m_Cube = CubeState();
 	m_Turns = turns;
-	m_Genes = m_Cube.GenerateScramble(generator, turns);
+	m_Genes = m_Cube.GenerateScramble(turns, generator);
 	m_Cube.Scramble(ogScramble);
 	//try to solve with genes
-	auto scrambleEndIt = m_Genes.begin() + turns - m_RestictedTurns;
-	m_Cube.Scramble(std::vector<CubeAction>(m_Genes.begin(), scrambleEndIt));
+	m_Cube.Scramble(m_Genes.substr(0, turns - m_RestictedTurns));
 	m_OgScramble = ogScramble;
 }
 
-DNA::DNA(int turns, const std::vector<CubeAction>& ogScramble, const std::vector<CubeAction>& genes, const CubeState& target, std::mt19937& generator)
+DNA::DNA(int turns, const std::string& ogScramble, const std::string& genes, const CubeState& target, std::mt19937& generator)
 {
-	m_Cube = CubeState(false, generator);
+	m_Cube = CubeState();
 	m_Turns = turns;
 	m_Genes = genes;
 	m_Cube.Scramble(ogScramble);
 	//try to solve with genes
-	auto scrambleEndIt = m_Genes.begin() + turns - m_RestictedTurns;
-	m_Cube.Scramble(std::vector<CubeAction>(m_Genes.begin(), scrambleEndIt));
+	m_Cube.Scramble(m_Genes.substr(0, turns - m_RestictedTurns));
 	m_OgScramble = ogScramble;
 	CalculateFitness(target);
 	m_Generator = generator;
@@ -77,41 +75,46 @@ DNA DNA::Crossover(DNA partner)
 
 	int midPoint{ static_cast<int>(m_Genes.size() / 2) };
 
-	child.m_Genes = std::vector<CubeAction>(m_Genes.begin(), m_Genes.begin() + midPoint);
+	if (m_Genes[midPoint] == '\'')
+		++midPoint;
 
-	child.m_Genes.insert(child.m_Genes.end(), partner.m_Genes.begin() + midPoint, partner.m_Genes.end());
+	child.m_Genes = m_Genes.substr(0, midPoint);
 
-	child.m_Cube = CubeState(false, m_Generator);
+	if (partner.m_Genes[midPoint] == '\'')
+		--midPoint;
+
+	child.m_Genes += partner.m_Genes.substr(midPoint, partner.m_Genes.size() - midPoint);
+
+	child.m_Cube = CubeState();
 	child.m_Cube.Scramble(child.m_OgScramble);
 	//try to solve with genes
-	child.m_Cube.Scramble(std::vector<CubeAction>(child.m_Genes.begin(), child.m_Genes.begin() + m_Turns - m_RestictedTurns));
+	child.m_Cube.Scramble(child.m_Genes.substr(0, m_Turns - m_RestictedTurns));
 
 	return child;
 }
 
 void DNA::Mutate(float mutationRate)
 {
-	std::vector<CubeAction> newGenes{};
+	char rotations[] { 'F', 'B', 'U', 'D', 'L', 'R' };
+	std::string newGenes{ m_Genes };
 
-	for (const CubeAction& action : m_Genes)
-		newGenes.push_back(action);
-
-	int startIndex{};
-	if (m_LayerOne && m_LayerTwo)
-		startIndex = m_Turns - m_RestictedTurns - 2;
-
-	const int amountOfGenes{ static_cast<int>(m_Genes.size()) };
-
-	for (int index{ startIndex }; index < amountOfGenes - m_RestictedTurns; ++index)
+	for (int index{}; index < m_Genes.length() - m_RestictedTurns; ++index)
 	{
 		if (static_cast<float>(rand()) / RAND_MAX < mutationRate)
 		{
-			newGenes[index] = CubeAction(m_Generator);
+			if (newGenes[index] != '\'')
+				newGenes[index] = rotations[rand() % 6];
+			else
+			{
+				char rotationsAdditional[]{ 'F', 'B', 'U', 'D', 'L', 'R', '\'' };
+				if (index < newGenes.size() - 1 && newGenes[index - 1] != '\'' && newGenes[index + 1] != '\'')
+					newGenes[index] = rotationsAdditional[rand() % 7];
+			}
 		}
 	}
 
-	m_Cube = CubeState(false, m_Generator);
+	m_Cube = CubeState();
 	m_Genes = newGenes;
 	m_Cube.Scramble(m_OgScramble);
-	m_Cube.Scramble(std::vector<CubeAction>(m_Genes.begin(), m_Genes.begin() + m_Turns - m_RestictedTurns));
+	m_Cube.Scramble(m_Genes.substr(0, m_Turns - m_RestictedTurns));
 }

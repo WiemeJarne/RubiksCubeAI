@@ -10,7 +10,7 @@ public:
 	std::vector<DNA> m_Population{};
 	std::vector<DNA> m_MatingPool{};
 	CubeState m_Target{};
-	std::vector<CubeAction> m_OgScramble{};
+	std::string m_OgScramble{};
 	int m_Generations{};
 	bool m_Finnished{};
 	int m_FitnessPow{ 3 };

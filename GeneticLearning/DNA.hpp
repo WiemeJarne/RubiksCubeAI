@@ -7,8 +7,8 @@ class DNA final
 public:
 	CubeState m_Cube{};
 	int m_Fitness{};
-	std::vector<CubeAction> m_OgScramble{};
-	std::vector<CubeAction> m_Genes{};
+	std::string m_OgScramble{};
+	std::string m_Genes{};
 	int m_Turns{};
 	int m_RestictedTurns{};
 	bool m_LayerOne{};
@@ -17,9 +17,9 @@ public:
 
 	DNA() = default;
 
-	DNA(int turns, const std::vector<CubeAction>& ogScramble, std::mt19937& generator);
+	DNA(int turns, const std::string& ogScramble, std::mt19937& generator);
 
-	DNA(int turns, const std::vector<CubeAction>& ogScramble, const std::vector<CubeAction>& genes, const CubeState& target, std::mt19937& generator);
+	DNA(int turns, const std::string& ogScramble, const std::string& genes, const CubeState& target, std::mt19937& generator);
 
 	//calculate fitness score for DNA object
 	void CalculateFitness(const CubeState& target);

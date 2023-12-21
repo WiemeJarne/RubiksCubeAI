@@ -3,7 +3,8 @@
 GeneticAlgorithm::GeneticAlgorithm(int amountOfTurns, CubeState target, float mutationRate, int populationSize, std::mt19937 generator)
 {
 	m_Turns = amountOfTurns;
-	m_OgScramble = target.GenerateScramble(generator);
+	//m_OgScramble = target.GenerateScramble(amountOfTurns, generator);
+	m_OgScramble = "F'R'F'U'FFR'U'RRUURUUFR'F'RRFFU'R'F'R'U'FFRFFU'RUURUFFUUFRF'RFRURRFFUR'UF'RURRUUR'U";
 	m_Target = target;
 	m_MutationRate = mutationRate;
 
