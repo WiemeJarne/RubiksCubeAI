@@ -45,7 +45,7 @@ void DNA::CalculateFitness(const CubeState& target)
 			if (target.pieces[index]->colors[colorIndex] != m_Cube.pieces[index]->colors[colorIndex])
 			{
 				equal = false;
-				continue;
+				break;
 			}
 		}
 
@@ -64,7 +64,7 @@ void DNA::CalculateFitness(const CubeState& target)
 	if (layerOne)
 		score *= 2;
 
-	m_Fitness = static_cast<int>(pow(score, 3));
+	m_Fitness = score;
 
 	m_LayerOne = layerOne;
 }
@@ -98,17 +98,20 @@ void DNA::Mutate(float mutationRate)
 	char rotations[] { 'F', 'B', 'U', 'D', 'L', 'R' };
 	std::string newGenes{ m_Genes };
 	
+	std::uniform_int_distribution<unsigned int> distRotations(0, 5);
+	std::uniform_int_distribution<unsigned int> distRotationsAdditionals(0, 6);
+
 	for (int index{}; index < m_Genes.length() - m_RestictedTurns; ++index)
 	{
 		if (static_cast<float>(rand()) / RAND_MAX < mutationRate)
 		{
 			if (newGenes[index] != '\'')
-				newGenes[index] = rotations[rand() % 6];
+				newGenes[index] = rotations[distRotations(m_Generator)];
 			else
 			{
 				char rotationsAdditional[]{ 'F', 'B', 'U', 'D', 'L', 'R', '\'' };
 				if (index < newGenes.size() - 1 && newGenes[index - 1] != '\'' && newGenes[index + 1] != '\'')
-					newGenes[index] = rotationsAdditional[rand() % 7];
+					newGenes[index] = rotationsAdditional[distRotationsAdditionals(m_Generator)];
 			}
 		}
 	}
