@@ -1,10 +1,10 @@
 #include "GeneticAlgorithm.hpp"
 
-GeneticAlgorithm::GeneticAlgorithm(int amountOfTurns, CubeState target, float mutationRate, int populationSize, std::mt19937 generator)
+GeneticAlgorithm::GeneticAlgorithm(int amountOfTurns, CubeState target, float mutationRate, int populationSize, std::mt19937& generator)
 {
 	m_Turns = amountOfTurns;
 	//m_OgScramble = target.GenerateScramble(amountOfTurns, generator);
-	m_OgScramble = "F'R'F'U'FFR'U'RRUURUUFR'F'RRFFU'R'F'R'U'FFRFFU'RUURUFFUUFRF'RFRURRFFUR'UF'RURRUUR'U";
+	m_OgScramble = "BFUFFULBBL'DDRDFFR'D'L'D'BLLURRDBBFLLR'DDR'FD'FLFFB'LBBDDF'R";
 	m_Target = target;
 	m_MutationRate = mutationRate;
 
@@ -63,11 +63,11 @@ void GeneticAlgorithm::Generate()
 	if (m_MatingPool.size() > 0u)
 	{
 		const int populationSize{ static_cast<int>(m_Population.size()) };
-		const int matingPoolMaxIndex{ static_cast<int>(m_MatingPool.size()) - 1 };
+		std::uniform_int_distribution<unsigned int> dist(0, static_cast<int>(m_MatingPool.size()) - 1);
 		for (int index{ 2 }; index < populationSize; ++index)
 		{
-			DNA partnerA{ m_MatingPool[rand() % matingPoolMaxIndex] };
-			DNA partnerB{ m_MatingPool[rand() % matingPoolMaxIndex] };
+			DNA partnerA{ m_MatingPool[dist(m_Generator)] };
+			DNA partnerB{ m_MatingPool[dist(m_Generator)] };
 			DNA child = partnerA.Crossover(partnerB);
 			child.Mutate(m_MutationRate);
 			m_Population[index] = child;
