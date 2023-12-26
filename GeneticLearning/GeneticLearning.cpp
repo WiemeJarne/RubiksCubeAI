@@ -22,7 +22,7 @@ bool SolveCube(bool printScrambe)
     int populationMaxSize{ 1000 };
     float mutationRate{ 0.2f };
     int turns{ 50 };
-    int restictedTurns{ 40 };
+    int restictedTurns{ 30 };
     int totalGenerations{};
 
     std::mt19937 generator
@@ -30,13 +30,11 @@ bool SolveCube(bool printScrambe)
         static_cast<unsigned int>
         (
             std::chrono::high_resolution_clock::now().time_since_epoch().count()
-            )
+        )
     );
 
     GeneticAlgorithm algorithm{ turns, target, mutationRate, populationMaxSize, generator };
     algorithm.AdjustRestictedTurns(restictedTurns);
-
-    bool stop{};
 
     CubeState currBestCube{}, prevBestCube{};
 
@@ -50,23 +48,30 @@ bool SolveCube(bool printScrambe)
         std::cout << "Fitness goal: " << algorithm.m_PerfectScore << '\n';
     }
 
-    while (!stop)
+    while (true)
     {
         DNA best{ algorithm.GetBest() };
         prevBestCube = currBestCube;
         currBestCube = best.m_Cube;
 
+        MoveCursor(0, 3);
+
         if (totalGenerations > 2)
         {
             if (highestFitness < best.m_Fitness)
-                highestFitness = best.m_Fitness;
-
-            MoveCursor(0, 3);
+                highestFitness = best.m_Fitness;            
 
             std::cout << "Best current fitness: " << best.m_Fitness << '\n';
-            std::cout << "Amount of turns: " << turns - restictedTurns - std::count(best.m_Genes.begin(), best.m_Genes.begin() + turns - restictedTurns, '\'') << '\n';
+            std::cout << "Amount of turns: " << best.m_Turns - best.m_RestictedTurns - std::count(best.m_Genes.begin(), best.m_Genes.begin() + best.m_Turns - best.m_RestictedTurns, '\'') << '\n';
             std::cout << "Generation: " << totalGenerations << '\n';
-            std::cout << "Best solve: " << best.m_Genes.substr(0, turns - restictedTurns) << '\n';
+            std::cout << "Best solve: " << best.m_Genes.substr(0, best.m_Turns - best.m_RestictedTurns) << '\n';
+        }
+        else
+        {
+            std::cout << "                                                         \n";
+            std::cout << "                                                         \n";
+            std::cout << "                                                         \n";
+            std::cout << "                                                         \n";
         }
 
         if (!algorithm.m_Finnished)
@@ -77,19 +82,19 @@ bool SolveCube(bool printScrambe)
 
             ++totalGenerations;
 
-            if (totalGenerations >= 3000)
+            if (totalGenerations >= 2500)
                 return false;
 
             if (currBestCube == prevBestCube)
             {
                 ++generationsOfStagnation;
 
-                if (generationsOfStagnation >= 500)
+                if (generationsOfStagnation >= 250)
                 {
                     if (restictedTurns == 0)
                     {
-                        turns = 25;
-                        restictedTurns = 10;
+                        turns = 50;
+                        restictedTurns = 30;
                         algorithm = GeneticAlgorithm(turns, target, mutationRate, populationMaxSize, generator);
                         algorithm.AdjustRestictedTurns(restictedTurns);
                     }
@@ -121,13 +126,15 @@ bool SolveCube(bool printScrambe)
             return true;
         }
     }
+
+    return false;
 }
 
 int main()
 {
     HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
     
-    CONSOLE_CURSOR_INFO     cursorInfo;
+    CONSOLE_CURSOR_INFO cursorInfo;
 
     GetConsoleCursorInfo(out, &cursorInfo);
     cursorInfo.bVisible = false; // set the cursor visibility
