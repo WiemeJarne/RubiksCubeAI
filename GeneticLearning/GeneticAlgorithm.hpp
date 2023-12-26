@@ -18,7 +18,7 @@ public:
 	int m_Turns{};
 	std::mt19937 m_Generator{};
 
-	GeneticAlgorithm(int amountOfTurns, CubeState target, float mutationRate, int populationSize, std::mt19937 generator);
+	GeneticAlgorithm(int amountOfTurns, CubeState target, float mutationRate, int populationSize, std::mt19937& generator);
 
 	void CalculateFitness();
 	//this function fills the mating pool for a new generation
