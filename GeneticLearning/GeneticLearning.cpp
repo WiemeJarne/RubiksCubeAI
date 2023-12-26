@@ -16,10 +16,8 @@ void MoveCursor(int x, int y)
     SetConsoleCursorPosition(h, c);
 }
 
-int main()
+bool SolveCube(bool printScrambe)
 {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
-
     CubeState target{};
     int populationMaxSize{ 1000 };
     float mutationRate{ 0.2f };
@@ -46,9 +44,14 @@ int main()
 
     int generationsOfStagnation{};
 
+    if (printScrambe)
+    {
+        std::cout << "To solve scramble: " << algorithm.m_OgScramble << '\n';
+        std::cout << "Fitness goal: " << algorithm.m_PerfectScore << '\n';
+    }
+
     while (!stop)
     {
-        
         DNA best{ algorithm.GetBest() };
         prevBestCube = currBestCube;
         currBestCube = best.m_Cube;
@@ -58,13 +61,12 @@ int main()
             if (highestFitness < best.m_Fitness)
                 highestFitness = best.m_Fitness;
 
-            MoveCursor(0, 0);
+            MoveCursor(0, 3);
 
             std::cout << "Best current fitness: " << best.m_Fitness << '\n';
-            std::cout << "Fitness goal: " << algorithm.m_PerfectScore << '\n';
-            std::cout << "Amount of turns: " << turns - restictedTurns << '\n';
+            std::cout << "Amount of turns: " << turns - restictedTurns - std::count(best.m_Genes.begin(), best.m_Genes.begin() + turns - restictedTurns, '\'') << '\n';
             std::cout << "Generation: " << totalGenerations << '\n';
-            std::cout << "Best solve : " << best.m_Genes.substr(0, turns - restictedTurns) << '\n';
+            std::cout << "Best solve: " << best.m_Genes.substr(0, turns - restictedTurns) << '\n';
         }
 
         if (!algorithm.m_Finnished)
@@ -74,6 +76,9 @@ int main()
             algorithm.CalculateFitness();
 
             ++totalGenerations;
+
+            if (totalGenerations >= 3000)
+                return false;
 
             if (currBestCube == prevBestCube)
             {
@@ -101,6 +106,55 @@ int main()
         else
         {
             std::cout << "Finnished at generation: " << totalGenerations << '\n';
+
+            //try to solve the cube with the found solution
+            CubeState toSolveCube{};
+
+            toSolveCube.Scramble(algorithm.m_OgScramble);
+
+            toSolveCube.Scramble(std::string(best.m_Genes.begin(), best.m_Genes.begin() + turns - restictedTurns));
+
+            std::cout << "Genes of best cube: " << best.m_Genes << '\n';
+
+            std::cout << "Solution was: " << static_cast<char>(toSolveCube == target);
+
+            return true;
         }
     }
+}
+
+int main()
+{
+    HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+    
+    CONSOLE_CURSOR_INFO     cursorInfo;
+
+    GetConsoleCursorInfo(out, &cursorInfo);
+    cursorInfo.bVisible = false; // set the cursor visibility
+    SetConsoleCursorInfo(out, &cursorInfo);
+
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    int amountOfTries{};
+
+    bool stop{};
+
+    CubeState cube{};
+
+    while (!stop)
+    {
+        if (amountOfTries == 0)
+            stop = SolveCube(true);
+        else stop = SolveCube(false);
+
+        ++amountOfTries;
+
+        MoveCursor(0, 2);
+
+        std::cout << "Busy with try " << amountOfTries << '\n';
+    }
+
+    std::string input{};
+    std::cout << "Yeeeeey solved cube after " << amountOfTries << " getting to 5000 generations after each try.\n";
+    std::cin >> input;
 }
