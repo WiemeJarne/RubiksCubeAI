@@ -97,7 +97,7 @@ void DNA::Mutate(float mutationRate)
 {
 	char rotations[] { 'F', 'B', 'U', 'D', 'L', 'R' };
 	std::string newGenes{ m_Genes };
-
+	
 	for (int index{}; index < m_Genes.length() - m_RestictedTurns; ++index)
 	{
 		if (static_cast<float>(rand()) / RAND_MAX < mutationRate)
