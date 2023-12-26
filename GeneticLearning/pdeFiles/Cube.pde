@@ -36,21 +36,21 @@ class ActualCube {
         fill(colors[i]);
         switch(i) {
           case 0:
+            translate(0, 0, -wallSize/2);
+            break;
+            
+          case 1:
             translate(wallSize/2, 0, 0);
             rotateY(PI/2);
             break;
             
-          case 1:
-            translate(0, 0, -wallSize/2);
-            break;
-            
           case 2:
-            translate(-wallSize/2, 0, 0);
-            rotateY(PI/2);
+            translate(0, 0, wallSize/2);
             break;
             
           case 3:
-            translate(0, 0, wallSize/2);
+            translate(-wallSize/2, 0, 0);
+            rotateY(PI/2);
             break;
             
           case 4:
@@ -74,44 +74,37 @@ class ActualCube {
     void addRotation(float radX, float radY, float radZ) {
       
       color temp;
-      if(radX == PI/2) {
-        //print(radX);
+      if(radZ == -PI/2) {
         temp = colors[1];
         colors[1] = colors[5];
         colors[5] = colors[3];
         colors[3] = colors[4];
         colors[4] = temp;
-      } else if(radX == -PI/2) {
-        //print(radX);
+      } else if(radZ == PI/2) {
         temp = colors[4];
         colors[4] = colors[3];
         colors[3] = colors[5];
         colors[5] = colors[1];
         colors[1] = temp;
       } else if(radY == PI/2) {
-        //print(radY);
         temp = colors[0];
         colors[0] = colors[1];
         colors[1] = colors[2];
         colors[2] = colors[3];
         colors[3] = temp;
       } else if(radY == -PI/2) {
-        //print(radY);
         temp = colors[3];
         colors[3] = colors[2];
         colors[2] = colors[1];
         colors[1] = colors[0];
         colors[0] = temp;
-      } else if(radZ == PI/2) {
-        //print(radZ);
+      } else if(radX == -PI/2) {
         temp = colors[0];
         colors[0] = colors[5];
         colors[5] = colors[2];
         colors[2] = colors[4];
         colors[4] = temp;
-      } else if(radZ == -PI/2) {
-        //print(radZ);
-        
+      } else if(radX == PI/2) {
         temp = colors[4];
         colors[4] = colors[2];
         colors[2] = colors[5];
@@ -133,6 +126,7 @@ class ActualCube {
   
   Cubit[][][] cubits;
   final color[] colorArr = {color(86, 161, 214), color(237, 237, 57), color(88, 204, 65), color(255), color(224, 76, 49), color(232, 173, 72)};
+  //blue, yellow, green, white, red, orange
   int x, y, z;
   float wallSize;
   
@@ -148,19 +142,27 @@ class ActualCube {
     for(int i = 0; i < x; i++) {
       for(int j = 0; j < y; j++) {
         for(int k = 0; k < z; k++) {
-          
-          if(i != 0 && i != x-1 && j != 0 && j != y-1 && k != 0 && k != z-1)
-            continue;
                         
           //blue-x=0, green-x=max, white-z=max, yellow-k=0, red-y=0, ora 
           color[] cubitColors = {
-            (i==x-1) ? colorArr[4]:color(0), //red
-            (k==0) ? colorArr[1]:color(0),  //yellow
-            (i==0) ? colorArr[5]:color(0),  //orange
-            (k==z-1) ? colorArr[3]:color(0), //white
-            (j==y-1) ? colorArr[2]:color(0), //green
-            (j==0) ? colorArr[0]:color(0), //blue
+            (k==0) ? colorArr[0]:color(0), //blue
+            (i==x-1) ? colorArr[4]:color(0),  //orange
+            (k==z-1) ? colorArr[2]:color(0),  //green
+            (i==0) ? colorArr[5]:color(0), //red
+            (j==y-1) ? colorArr[1]:color(0), //yellow
+            (j==0) ? colorArr[3]:color(0), //white
           };
+          
+          //if(i==0 && j ==0 && k==0)
+          //{
+          //  cubitColors[0] = colorArr[2];
+          //  cubitColors[1] = colorArr[2];
+          //  cubitColors[2] = colorArr[2];
+          //  cubitColors[3] = colorArr[2];
+          //  cubitColors[4] = colorArr[2];
+          //  cubitColors[5] = colorArr[2];
+          //}
+          
           cubits[i][j][k] = new Cubit(cubitColors, i, j, k, this.wallSize);
           
         }
@@ -176,7 +178,7 @@ class ActualCube {
     rotateX(-radX);
     rotateY(-radY);
     rotateZ(PI);
-    
+   
     for(int i = 0; i < x; i++) {
       for(int j = 0; j < y; j++) {
         for(int k = 0; k < z; k++) {
@@ -231,55 +233,55 @@ class ActualCube {
     switch (rotation.toLowerCase()) {
       case "f":
         //move ActualCubes
-        temp = cubits[0][1][0];
-        cubits[0][1][0] = cubits[1][1][0];
-        cubits[1][1][0] = cubits[1][1][1];
-        cubits[1][1][1] = cubits[0][1][1];
-        cubits[0][1][1] = temp;
+        temp = cubits[0][0][1];
+        cubits[0][0][1] = cubits[0][1][1];
+        cubits[0][1][1] = cubits[1][1][1];
+        cubits[1][1][1] = cubits[1][0][1];
+        cubits[1][0][1] = temp;
       
-        cubits[0][1][0].addRotation(0,-PI/2,0);
-        cubits[1][1][0].addRotation(0,-PI/2,0);
-        cubits[1][1][1].addRotation(0,-PI/2,0);
-        cubits[0][1][1].addRotation(0,-PI/2,0);
+       cubits[0][0][1].addRotation(0,0,-PI/2);
+       cubits[0][1][1].addRotation(0,0,-PI/2);
+       cubits[1][1][1].addRotation(0,0,-PI/2);
+       cubits[1][0][1].addRotation(0,0,-PI/2);
         break;
         
       case "f'":
-        temp = cubits[0][1][1];
-        cubits[0][1][1] = cubits[1][1][1];
-        cubits[1][1][1] = cubits[1][1][0];
-        cubits[1][1][0] = cubits[0][1][0];
-        cubits[0][1][0] = temp;
+        temp = cubits[1][0][1];
+        cubits[1][0][1] = cubits[1][1][1];
+        cubits[1][1][1] = cubits[0][1][1];
+        cubits[0][1][1] = cubits[0][0][1];
+        cubits[0][0][1] = temp;
       
-        cubits[0][1][1].addRotation(0,PI/2,0);
-        cubits[1][1][1].addRotation(0,PI/2,0);
-        cubits[1][1][0].addRotation(0,PI/2,0);
-        cubits[0][1][0].addRotation(0,PI/2,0);
+        cubits[0][0][1].addRotation(0,0,PI/2);
+        cubits[0][1][1].addRotation(0,0,PI/2);
+        cubits[1][1][1].addRotation(0,0,PI/2);
+        cubits[1][0][1].addRotation(0,0,PI/2);
         break;
         
       case "b":
         temp = cubits[0][0][0];
-        cubits[0][0][0] = cubits[0][0][1];
-        cubits[0][0][1] = cubits[1][0][1];
-        cubits[1][0][1] = cubits[1][0][0];
-        cubits[1][0][0] = temp;
+        cubits[0][0][0] = cubits[1][0][0];
+        cubits[1][0][0] = cubits[1][1][0];
+        cubits[1][1][0] = cubits[0][1][0];
+        cubits[0][1][0] = temp;
       
-        cubits[0][0][0].addRotation(0,PI/2,0);
-        cubits[0][0][1].addRotation(0,PI/2,0);
-        cubits[1][0][1].addRotation(0,PI/2,0);
-        cubits[1][0][0].addRotation(0,PI/2,0);
+        cubits[0][0][0].addRotation(0,0,PI/2);
+        cubits[1][0][0].addRotation(0,0,PI/2);
+        cubits[1][1][0].addRotation(0,0,PI/2);
+        cubits[0][1][0].addRotation(0,0,PI/2);
         break;
         
       case "b'":
-        temp = cubits[1][0][0];
-        cubits[1][0][0] = cubits[1][0][1];
-        cubits[1][0][1] = cubits[0][0][1];
-        cubits[0][0][1] = cubits[0][0][0];
+        temp = cubits[0][1][0];
+        cubits[0][1][0] = cubits[1][1][0];
+        cubits[1][1][0] = cubits[1][0][0];
+        cubits[1][0][0] = cubits[0][0][0];
         cubits[0][0][0] = temp;
       
-        cubits[1][0][0].addRotation(0,-PI/2,0);
-        cubits[1][0][1].addRotation(0,-PI/2,0);
-        cubits[0][0][1].addRotation(0,-PI/2,0);
-        cubits[0][0][0].addRotation(0,-PI/2,0);
+        cubits[0][0][0].addRotation(0,0,-PI/2);
+        cubits[1][0][0].addRotation(0,0,-PI/2);
+        cubits[1][1][0].addRotation(0,0,-PI/2);
+        cubits[0][1][0].addRotation(0,0,-PI/2);
         break;
         
       case "l":
@@ -290,10 +292,10 @@ class ActualCube {
         cubits[0][1][1] = cubits[0][0][1];
         cubits[0][0][1] = temp;
         
-        cubits[0][0][0].addRotation(-PI/2,0,0);
-        cubits[0][1][0].addRotation(-PI/2,0,0);
-        cubits[0][1][1].addRotation(-PI/2,0,0);
-        cubits[0][0][1].addRotation(-PI/2,0,0);
+        cubits[0][0][0].addRotation(PI/2,0,0);
+        cubits[0][1][0].addRotation(PI/2,0,0);
+        cubits[0][1][1].addRotation(PI/2,0,0);
+        cubits[0][0][1].addRotation(PI/2,0,0);
         break;
         
       case "l'":
@@ -303,10 +305,10 @@ class ActualCube {
         cubits[0][1][0] = cubits[0][0][0];
         cubits[0][0][0] = temp;
       
-        cubits[0][0][1].addRotation(PI/2,0,0);
-        cubits[0][1][1].addRotation(PI/2,0,0);
-        cubits[0][1][0].addRotation(PI/2,0,0);
-        cubits[0][0][0].addRotation(PI/2,0,0);
+        cubits[0][0][1].addRotation(-PI/2,0,0);
+        cubits[0][1][1].addRotation(-PI/2,0,0);
+        cubits[0][1][0].addRotation(-PI/2,0,0);
+        cubits[0][0][0].addRotation(-PI/2,0,0);
         break;
         
       case "r":
@@ -316,10 +318,10 @@ class ActualCube {
         cubits[1][1][1] = cubits[1][1][0];
         cubits[1][1][0] = temp;
       
-        cubits[1][0][0].addRotation(PI/2,0,0);
-        cubits[1][0][1].addRotation(PI/2,0,0);
-        cubits[1][1][1].addRotation(PI/2,0,0);
-        cubits[1][1][0].addRotation(PI/2,0,0);
+        cubits[1][0][0].addRotation(-PI/2,0,0);
+        cubits[1][0][1].addRotation(-PI/2,0,0);
+        cubits[1][1][1].addRotation(-PI/2,0,0);
+        cubits[1][1][0].addRotation(-PI/2,0,0);
         break;
         
       case "r'":
@@ -329,62 +331,62 @@ class ActualCube {
         cubits[1][0][1] = cubits[1][0][0];
         cubits[1][0][0] = temp;
       
-        cubits[1][1][0].addRotation(-PI/2,0,0);
-        cubits[1][1][1].addRotation(-PI/2,0,0);
-        cubits[1][0][1].addRotation(-PI/2,0,0);
-        cubits[1][0][0].addRotation(-PI/2,0,0);
+        cubits[1][1][0].addRotation(PI/2,0,0);
+        cubits[1][1][1].addRotation(PI/2,0,0);
+        cubits[1][0][1].addRotation(PI/2,0,0);
+        cubits[1][0][0].addRotation(PI/2,0,0);
         break;
         
         case "u":
-        temp = cubits[0][1][1];
-        cubits[0][1][1] = cubits[1][1][1];
-        cubits[1][1][1] = cubits[1][0][1];
-        cubits[1][0][1] = cubits[0][0][1];
-        cubits[0][0][1] = temp;
+        temp = cubits[0][0][0];
+        cubits[0][0][0] = cubits[0][0][1];
+        cubits[0][0][1] = cubits[1][0][1];
+        cubits[1][0][1] = cubits[1][0][0];
+        cubits[1][0][0] = temp;
       
-        cubits[0][1][1].addRotation(0,0,PI/2);
-        cubits[1][1][1].addRotation(0,0,PI/2);
-        cubits[1][0][1].addRotation(0,0,PI/2);
-        cubits[0][0][1].addRotation(0,0,PI/2);
+        cubits[0][0][0].addRotation(0,-PI/2,0);
+        cubits[0][0][1].addRotation(0,-PI/2,0);
+        cubits[1][0][1].addRotation(0,-PI/2,0);
+        cubits[1][0][0].addRotation(0,-PI/2,0);
         break;
         
       case "u'":
-        temp = cubits[0][0][1];
-        cubits[0][0][1] = cubits[1][0][1];
-        cubits[1][0][1] = cubits[1][1][1];
-        cubits[1][1][1] = cubits[0][1][1];
-        cubits[0][1][1] = temp;
+        temp = cubits[1][0][0];
+        cubits[1][0][0] = cubits[1][0][1];
+        cubits[1][0][1] = cubits[0][0][1];
+        cubits[0][0][1] = cubits[0][0][0];
+        cubits[0][0][0] = temp;
       
-        cubits[0][0][1].addRotation(0,0,-PI/2);
-        cubits[1][0][1].addRotation(0,0,-PI/2);
-        cubits[1][1][1].addRotation(0,0,-PI/2);
-        cubits[0][1][1].addRotation(0,0,-PI/2);
+        cubits[0][0][0].addRotation(0,PI/2,0);
+        cubits[0][0][1].addRotation(0,PI/2,0);
+        cubits[1][0][1].addRotation(0,PI/2,0);
+        cubits[1][0][0].addRotation(0,PI/2,0);
         break;
         
-      case "d":
-        temp = cubits[0][1][0];
-        cubits[0][1][0] = cubits[0][0][0];
-        cubits[0][0][0] = cubits[1][0][0];
-        cubits[1][0][0] = cubits[1][1][0];
-        cubits[1][1][0] = temp;
+        case "d":
+        temp = cubits[1][1][0];
+        cubits[1][1][0] = cubits[1][1][1];
+        cubits[1][1][1] = cubits[0][1][1];
+        cubits[0][1][1] = cubits[0][1][0];
+        cubits[0][1][0] = temp;
       
-        cubits[0][1][0].addRotation(0,0,-PI/2);
-        cubits[0][0][0].addRotation(0,0,-PI/2);
-        cubits[1][0][0].addRotation(0,0,-PI/2);
-        cubits[1][1][0].addRotation(0,0,-PI/2);
+        cubits[0][1][0].addRotation(0,PI/2,0);
+        cubits[0][1][1].addRotation(0,PI/2,0);
+        cubits[1][1][1].addRotation(0,PI/2,0);
+        cubits[1][1][0].addRotation(0,PI/2,0);
         break;
         
       case "d'":
-        temp = cubits[1][1][0];
-        cubits[1][1][0] = cubits[1][0][0];
-        cubits[1][0][0] = cubits[0][0][0];
-        cubits[0][0][0] = cubits[0][1][0];
-        cubits[0][1][0] = temp;
+        temp = cubits[0][1][0];
+        cubits[0][1][0] = cubits[0][1][1];
+        cubits[0][1][1] = cubits[1][1][1];
+        cubits[1][1][1] = cubits[1][1][0];
+        cubits[1][1][0] = temp;
       
-        cubits[1][1][0].addRotation(0,0,PI/2);
-        cubits[1][0][0].addRotation(0,0,PI/2);
-        cubits[0][0][0].addRotation(0,0,PI/2);
-        cubits[0][1][0].addRotation(0,0,PI/2);
+        cubits[0][1][0].addRotation(0,-PI/2,0);
+        cubits[0][1][1].addRotation(0,-PI/2,0);
+        cubits[1][1][1].addRotation(0,-PI/2,0);
+        cubits[1][1][0].addRotation(0,-PI/2,0);
         break;
     }
     

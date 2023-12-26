@@ -33,6 +33,7 @@ void setup() {
   cube1.scramble(cube1.genScramble(20));
   cube2.scramble(cube2.genScramble(20));*/
   
+ //target.scramble("f'r'f'u'ffr'u'rruuruufr'f'rrffu'r'f'r'u'ffrffu'ruuruffuufrf'rfrurrffur'uf'rurruur'u");
 }
 
 
@@ -107,30 +108,30 @@ void keyReleased() {
   }*/
     
   
-  /*if(key == 'l')
-    target.rotateSide("l'");
-  else if(key == 'f')
-    target.rotateSide("f'");
-  else if(key == 'b')
-    target.rotateSide("b'");
-  else if(key == 'r')
-    target.rotateSide("r'");
-  else if(key == 'd')
-    target.rotateSide("d'");
-  else if(key == 'u')
-    target.rotateSide("u'");
-    
   if(key == 'l')
-    cube2.rotateSide("l");
+    target.rotateSide("l");
   else if(key == 'f')
-    cube2.rotateSide("f");
+    target.rotateSide("f");
   else if(key == 'b')
-    cube2.rotateSide("b");
+    target.rotateSide("b");
   else if(key == 'r')
-    cube2.rotateSide("r");
+    target.rotateSide("r");
   else if(key == 'd')
-    cube2.rotateSide("d");
+    target.rotateSide("d");
   else if(key == 'u')
-    cube2.rotateSide("u");*/
+    target.rotateSide("u");
+    
+  if(key == ';')
+    target.rotateSide("l'");
+  else if(key == 'g')
+    target.rotateSide("f'");
+  else if(key == 'n')
+    target.rotateSide("b'");
+  else if(key == 't')
+    target.rotateSide("r'");
+  else if(key == 's')
+    target.rotateSide("d'");
+  else if(key == 'i')
+    target.rotateSide("u'");
   
 }

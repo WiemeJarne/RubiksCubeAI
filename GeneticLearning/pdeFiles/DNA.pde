@@ -59,7 +59,7 @@ class DNA {
             }
           }
               
-          if(k == 0 && equal == false)
+          if(j == 0 && equal == false)
             layerOne = false;
           
           if(equal && layerOne) score++;

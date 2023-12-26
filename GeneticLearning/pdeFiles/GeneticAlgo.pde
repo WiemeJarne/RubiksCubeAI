@@ -16,7 +16,7 @@ class GeneticAlgo {
   int perfectScore;  // = int(pow(26,fitnessPow)); //26 for the # of pieces in a cube minus 1                 //54 for the # of outward facing sides on a 3x3x3 cube (9*6 = 54)
   
   GeneticAlgo(int x, int y, int z, int turns, float wallSize, ActualCube target, float mutationRate, int size) {
-    this.ogScramble = "f'r'f'u'ffr'u'rruuruufr'f'rrffu'r'f'r'u'ffrffu'ruuruffuufrf'rfrurrffur'uf'rurruur'u";
+    this.ogScramble = "f'r'f'u'fflu'lrbrdufr'";
     //this.ogScramble = (new ActualCube(x,y,z,wallSize)).genScramble(turns);
     this.target = target;
     this.mutationRate = mutationRate;
