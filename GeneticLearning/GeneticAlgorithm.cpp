@@ -1,19 +1,22 @@
 #include "GeneticAlgorithm.hpp"
 
-GeneticAlgorithm::GeneticAlgorithm(int amountOfTurns, CubeState target, float mutationRate, int populationSize, std::mt19937& generator)
+GeneticAlgorithm::GeneticAlgorithm(int amountOfTurns, CubeState target, float mutationRate, int populationSize, std::mt19937& generator, const std::string& scramble)
 {
-	m_Turns = amountOfTurns;
-	//m_OgScramble = target.GenerateScramble(amountOfTurns, generator);
-	m_OgScramble = "BFUFFULBBL'DDRDFFR'D'L'D'BLLURRDBBFLLR'DDR'FD'FLFFB'LBBDDF'R";
+	if (scramble != "")
+		m_Scramble = target.GenerateScramble(amountOfTurns, generator);
+	else m_Scramble = scramble;
+
 	m_Target = target;
 	m_MutationRate = mutationRate;
 
+	m_Population.resize(populationSize);
+
 	for (int index{}; index < populationSize; ++index)
-		m_Population.push_back(DNA(amountOfTurns, m_OgScramble, generator));
+		m_Population[index] = DNA(amountOfTurns, m_Scramble);
 
 	CalculateFitness();
 
-	DNA perfect{ DNA(amountOfTurns, m_OgScramble, generator) };
+	DNA perfect{ DNA(amountOfTurns, m_Scramble) };
 	perfect.m_Cube = CubeState();
 	perfect.CalculateFitness(target);
 	m_PerfectScore = perfect.m_Fitness;
@@ -21,7 +24,7 @@ GeneticAlgorithm::GeneticAlgorithm(int amountOfTurns, CubeState target, float mu
 
 void GeneticAlgorithm::CalculateFitness()
 {
-	for (DNA dna : m_Population)
+	for (DNA& dna : m_Population)
 		dna.CalculateFitness(m_Target);
 }
 
@@ -31,13 +34,14 @@ void GeneticAlgorithm::NaturalSelection()
 
 	float maxFitness{};
 
-	for (DNA dna : m_Population)
+	//find the maxFitness
+	for (const DNA& dna : m_Population)
 	{
 		if (dna.m_Fitness > maxFitness)
 			maxFitness = static_cast<float>(dna.m_Fitness);
 	}
 
-	for (DNA dna : m_Population)
+	for (const DNA& dna : m_Population)
 	{
 		float fitness{ static_cast<float>(dna.m_Fitness) };
 
@@ -49,70 +53,51 @@ void GeneticAlgorithm::NaturalSelection()
 	}
 }
 
-void GeneticAlgorithm::Generate()
+void GeneticAlgorithm::Generate(int amountOfTurns)
 {
 	DNA best{ GetBest() };
 	m_Population[0] = best;
 
-	DNA bestMutated{ DNA(m_Turns, m_OgScramble, best.m_Genes, m_Target, m_Generator) };
+	DNA bestMutated{ DNA(amountOfTurns, m_Scramble, best.m_Genes, m_Target) };
 
 	bestMutated.Mutate(m_MutationRate);
 
 	m_Population[1] = bestMutated;
 
-	if (m_MatingPool.size() > 0u)
+	const int populationSize{ static_cast<int>(m_Population.size()) };
+	std::uniform_int_distribution<unsigned int> dist(0, static_cast<int>(m_MatingPool.size()) - 1);
+	for (int index{ 2 }; index < populationSize; ++index)
 	{
-		const int populationSize{ static_cast<int>(m_Population.size()) };
-		std::uniform_int_distribution<unsigned int> dist(0, static_cast<int>(m_MatingPool.size()) - 1);
-		for (int index{ 2 }; index < populationSize; ++index)
-		{
-			DNA partnerA{ m_MatingPool[dist(m_Generator)] };
-			DNA partnerB{ m_MatingPool[dist(m_Generator)] };
-			DNA child = partnerA.Crossover(partnerB);
-			child.Mutate(m_MutationRate);
-			m_Population[index] = child;
-		}
+		DNA partnerA{ m_MatingPool[dist(m_Generator)] };
+		DNA partnerB{ m_MatingPool[dist(m_Generator)] };
+		DNA child = partnerA.Crossover(partnerB);
+		child.Mutate(m_MutationRate);
+		m_Population[index] = child;
 	}
 
 	m_Population[0].CalculateFitness(m_Target);
 	m_Population[1].CalculateFitness(m_Target);
 
-	++m_Generations;
+	++m_CurrentGenerationNr;
 }
 
 DNA GeneticAlgorithm::GetBest()
 {
-	int record{};
+	int highestFitnesss{};
 	int bestIndex{};
 
 	const int populationSize{ static_cast<int>(m_Population.size()) };
 	for (int index{}; index < populationSize; ++index)
 	{
-		if (m_Population[index].m_Fitness > record)
+		if (m_Population[index].m_Fitness > highestFitnesss)
 		{
 			bestIndex = index;
-			record = m_Population[index].m_Fitness;
+			highestFitnesss = m_Population[index].m_Fitness;
 		}
 	}
 
-	if (record == m_PerfectScore)
-		m_Finnished = true;
+	if (highestFitnesss == m_PerfectScore)
+		m_IsFinnished = true;
 
 	return m_Population[bestIndex];
-}
-
-void GeneticAlgorithm::AdjustRestictedTurns(int newRestictedTurns)
-{
-	for (DNA& dna : m_Population)
-		dna.m_RestictedTurns = newRestictedTurns;
-}
-
-float GeneticAlgorithm::GetAverageFitness()
-{
-	float total{};
-
-	for (DNA& dna : m_Population)
-		total += dna.m_Fitness;
-
-	return total / static_cast<float>(m_Population.size());
 }
