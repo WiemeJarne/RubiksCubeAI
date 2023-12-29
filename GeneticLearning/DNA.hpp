@@ -10,16 +10,13 @@ public:
 	std::string m_OgScramble{};
 	std::string m_Genes{};
 	int m_Turns{};
-	int m_RestictedTurns{};
 	bool m_LayerOne{};
-	bool m_LayerTwo{};
-	std::mt19937 m_Generator{};
 
 	DNA() = default;
 
-	DNA(int turns, const std::string& ogScramble, std::mt19937& generator);
+	DNA(int turns, const std::string& ogScramble);
 
-	DNA(int turns, const std::string& ogScramble, const std::string& genes, const CubeState& target, std::mt19937& generator);
+	DNA(int turns, const std::string& ogScramble, const std::string& genes, const CubeState& target);
 
 	//calculate fitness score for DNA object
 	void CalculateFitness(const CubeState& target);
@@ -28,6 +25,9 @@ public:
 
 	void Mutate(float mutationRate);
 
+	static void SetGenerator(std::mt19937& generator) { m_Generator = generator; }
+
 private:
+	static std::mt19937 m_Generator;
 };
 #endif // !DNA_HPP

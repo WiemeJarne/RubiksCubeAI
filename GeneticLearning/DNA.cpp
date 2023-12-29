@@ -1,28 +1,30 @@
 #include "DNA.hpp"
 
-DNA::DNA(int turns, const std::string& ogScramble, std::mt19937& generator)
+std::mt19937 DNA::m_Generator;
+
+DNA::DNA(int turns, const std::string& ogScramble)
 {
-	m_Generator = generator;
 	m_Cube = CubeState();
 	m_Turns = turns;
-	m_Genes = m_Cube.GenerateScramble(turns, generator);
+	m_Genes = m_Cube.GenerateScramble(turns, m_Generator);
+	//initial scramble
 	m_Cube.Scramble(ogScramble);
 	//try to solve with genes
-	m_Cube.Scramble(m_Genes.substr(0, turns - m_RestictedTurns));
+	m_Cube.Scramble(m_Genes);
 	m_OgScramble = ogScramble;
 }
 
-DNA::DNA(int turns, const std::string& ogScramble, const std::string& genes, const CubeState& target, std::mt19937& generator)
+DNA::DNA(int turns, const std::string& ogScramble, const std::string& genes, const CubeState& target)
 {
 	m_Cube = CubeState();
 	m_Turns = turns;
 	m_Genes = genes;
 	m_Cube.Scramble(ogScramble);
 	//try to solve with genes
-	m_Cube.Scramble(m_Genes.substr(0, turns - m_RestictedTurns));
+	m_Cube.Scramble(m_Genes.substr(0, turns));
 	m_OgScramble = ogScramble;
 	CalculateFitness(target);
-	m_Generator = generator;
+	//m_Generator = generator;
 }
 
 //calculate fitness score for DNA object
@@ -71,7 +73,7 @@ void DNA::CalculateFitness(const CubeState& target)
 
 DNA DNA::Crossover(DNA partner)
 {
-	DNA child{ DNA(m_Turns, m_OgScramble, m_Generator) };
+	DNA child{ DNA(m_Turns, m_OgScramble) };
 
 	int midPoint{ static_cast<int>(m_Genes.size() / 2) };
 
@@ -88,7 +90,7 @@ DNA DNA::Crossover(DNA partner)
 	child.m_Cube = CubeState();
 	child.m_Cube.Scramble(child.m_OgScramble);
 	//try to solve with genes
-	child.m_Cube.Scramble(child.m_Genes.substr(0, m_Turns - m_RestictedTurns));
+	child.m_Cube.Scramble(child.m_Genes);
 
 	return child;
 }
@@ -101,7 +103,7 @@ void DNA::Mutate(float mutationRate)
 	std::uniform_int_distribution<unsigned int> distRotations(0, 5);
 	std::uniform_int_distribution<unsigned int> distRotationsAdditionals(0, 6);
 
-	for (int index{}; index < m_Genes.length() - m_RestictedTurns; ++index)
+	for (int index{}; index < m_Genes.length(); ++index)
 	{
 		if (static_cast<float>(rand()) / RAND_MAX < mutationRate)
 		{
@@ -119,5 +121,5 @@ void DNA::Mutate(float mutationRate)
 	m_Cube = CubeState();
 	m_Genes = newGenes;
 	m_Cube.Scramble(m_OgScramble);
-	m_Cube.Scramble(m_Genes.substr(0, m_Turns - m_RestictedTurns));
+	m_Cube.Scramble(m_Genes);
 }
