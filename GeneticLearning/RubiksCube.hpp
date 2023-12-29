@@ -281,16 +281,11 @@ struct CubeState
 			while ((action == secondToLastAction && (action == lastAction || lastAction.find('\'') != std::string::npos)) || (action.find('\'') != std::string::npos && lastAction.find('\'') != std::string::npos))
 				action = GetRandomAction(generator);
 
-			for (const char& toAddChar : action)
-			{
-				scrambleString.push_back(toAddChar);
-			}
+			scrambleString += action;
+
 			secondToLastAction = lastAction;
 			lastAction = action;
 		}
-
-		//for (const CubeAction& action : _scramble)
-		//	scrambleString += ToString(action);
 
 		return scrambleString;
 	}
