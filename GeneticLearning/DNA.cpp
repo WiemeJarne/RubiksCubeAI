@@ -11,7 +11,7 @@ DNA::DNA(int turns, const std::string& ogScramble)
 	m_Cube.Scramble(ogScramble);
 	//try to solve with genes
 	m_Cube.Scramble(m_Genes);
-	m_OgScramble = ogScramble;
+	m_Scramble = ogScramble;
 }
 
 DNA::DNA(int turns, const std::string& ogScramble, const std::string& genes, const CubeState& target)
@@ -22,7 +22,7 @@ DNA::DNA(int turns, const std::string& ogScramble, const std::string& genes, con
 	m_Cube.Scramble(ogScramble);
 	//try to solve with genes
 	m_Cube.Scramble(m_Genes.substr(0, turns));
-	m_OgScramble = ogScramble;
+	m_Scramble = ogScramble;
 	CalculateFitness(target);
 	//m_Generator = generator;
 }
@@ -67,13 +67,11 @@ void DNA::CalculateFitness(const CubeState& target)
 		score *= 2;
 
 	m_Fitness = score;
-
-	m_LayerOne = layerOne;
 }
 
 DNA DNA::Crossover(DNA partner)
 {
-	DNA child{ DNA(m_Turns, m_OgScramble) };
+	DNA child{ DNA(m_Turns, m_Scramble) };
 
 	int midPoint{ static_cast<int>(m_Genes.size() / 2) };
 
@@ -88,7 +86,7 @@ DNA DNA::Crossover(DNA partner)
 	child.m_Genes += partner.m_Genes.substr(midPoint, partner.m_Genes.size() - midPoint);
 
 	child.m_Cube = CubeState();
-	child.m_Cube.Scramble(child.m_OgScramble);
+	child.m_Cube.Scramble(child.m_Scramble);
 	//try to solve with genes
 	child.m_Cube.Scramble(child.m_Genes);
 
@@ -120,6 +118,6 @@ void DNA::Mutate(float mutationRate)
 
 	m_Cube = CubeState();
 	m_Genes = newGenes;
-	m_Cube.Scramble(m_OgScramble);
+	m_Cube.Scramble(m_Scramble);
 	m_Cube.Scramble(m_Genes);
 }

@@ -43,19 +43,19 @@ int SolveCube(bool printScrambe, std::mt19937& generator, const std::string& scr
     {
         DNA best{ algorithm.GetBest() };
         prevBestCube = currBestCube;
-        currBestCube = best.m_Cube;
+        currBestCube = best.GetCubeState();
 
         MoveCursor(0, 3);
 
         if (totalGenerations > 2)
         {
-            if (highestFitness < best.m_Fitness)
-                highestFitness = best.m_Fitness;            
+            if (highestFitness < best.GetFitness())
+                highestFitness = best.GetFitness();
 
-            std::cout << "Best current fitness: " << best.m_Fitness << '\n';
-            std::cout << "Amount of turns: " << best.m_Turns - std::count(best.m_Genes.begin(), best.m_Genes.begin() + best.m_Turns, '\'') << '\n';
+            std::cout << "Best current fitness: " << best.GetFitness() << '\n';
+            std::cout << "Amount of turns: " << best.GetTurns() - std::count(best.GetGenes().begin(), best.GetGenes().begin() + best.GetTurns(), '\'') << '\n';
             std::cout << "Generation: " << totalGenerations << '\n';
-            std::cout << "Best solve: " << best.m_Genes.substr(0, best.m_Turns) << '\n';
+            std::cout << "Best solve: " << best.GetGenes().substr(0, best.GetTurns()) << '\n';
         }
         else
         {
@@ -85,9 +85,9 @@ int SolveCube(bool printScrambe, std::mt19937& generator, const std::string& scr
 
             toSolveCube.Scramble(algorithm.GetScramble());
 
-            toSolveCube.Scramble(std::string(best.m_Genes.begin(), best.m_Genes.begin() + turns));
+            toSolveCube.Scramble(std::string(best.GetGenes().begin(), best.GetGenes().begin() + turns));
 
-            std::cout << "Genes of best cube: " << best.m_Genes << '\n';
+            std::cout << "Genes of best cube: " << best.GetGenes() << '\n';
 
             std::cout << "Solution was: " << static_cast<char>(toSolveCube == target);
 

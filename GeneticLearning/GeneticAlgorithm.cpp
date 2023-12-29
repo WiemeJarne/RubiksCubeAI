@@ -17,9 +17,9 @@ GeneticAlgorithm::GeneticAlgorithm(int amountOfTurns, CubeState target, float mu
 	CalculateFitness();
 
 	DNA perfect{ DNA(amountOfTurns, m_Scramble) };
-	perfect.m_Cube = CubeState();
+	perfect.SetCubeState(CubeState());
 	perfect.CalculateFitness(target);
-	m_PerfectScore = perfect.m_Fitness;
+	m_PerfectScore = perfect.GetFitness();
 }
 
 void GeneticAlgorithm::CalculateFitness()
@@ -37,13 +37,13 @@ void GeneticAlgorithm::NaturalSelection()
 	//find the maxFitness
 	for (const DNA& dna : m_Population)
 	{
-		if (dna.m_Fitness > maxFitness)
-			maxFitness = static_cast<float>(dna.m_Fitness);
+		if (dna.GetFitness() > maxFitness)
+			maxFitness = static_cast<float>(dna.GetFitness());
 	}
 
 	for (const DNA& dna : m_Population)
 	{
-		float fitness{ static_cast<float>(dna.m_Fitness) };
+		float fitness{ static_cast<float>(dna.GetFitness()) };
 
 		if (fitness != 0) fitness /= maxFitness;
 
@@ -58,7 +58,7 @@ void GeneticAlgorithm::Generate(int amountOfTurns)
 	DNA best{ GetBest() };
 	m_Population[0] = best;
 
-	DNA bestMutated{ DNA(amountOfTurns, m_Scramble, best.m_Genes, m_Target) };
+	DNA bestMutated{ DNA(amountOfTurns, m_Scramble, best.GetGenes(), m_Target) };
 
 	bestMutated.Mutate(m_MutationRate);
 
@@ -89,10 +89,10 @@ DNA GeneticAlgorithm::GetBest()
 	const int populationSize{ static_cast<int>(m_Population.size()) };
 	for (int index{}; index < populationSize; ++index)
 	{
-		if (m_Population[index].m_Fitness > highestFitnesss)
+		if (m_Population[index].GetFitness() > highestFitnesss)
 		{
 			bestIndex = index;
-			highestFitnesss = m_Population[index].m_Fitness;
+			highestFitnesss = m_Population[index].GetFitness();
 		}
 	}
 

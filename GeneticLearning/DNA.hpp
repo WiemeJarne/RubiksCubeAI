@@ -5,13 +5,6 @@
 class DNA final
 {
 public:
-	CubeState m_Cube{};
-	int m_Fitness{};
-	std::string m_OgScramble{};
-	std::string m_Genes{};
-	int m_Turns{};
-	bool m_LayerOne{};
-
 	DNA() = default;
 
 	DNA(int turns, const std::string& ogScramble);
@@ -26,8 +19,21 @@ public:
 	void Mutate(float mutationRate);
 
 	static void SetGenerator(std::mt19937& generator) { m_Generator = generator; }
+	
+	int GetTurns() const { return m_Turns; }
+	int GetFitness() const { return m_Fitness; }
+	const std::string& GetGenes() const { return m_Genes; }
+	const CubeState& GetCubeState() const { return m_Cube; }
+	
+	void SetCubeState(const CubeState& cubeState) { m_Cube = cubeState; }
 
 private:
+	int m_Turns{};
+	int m_Fitness{};
+	std::string m_Scramble{};
+	std::string m_Genes{};
+	CubeState m_Cube{};
+
 	static std::mt19937 m_Generator;
 };
 #endif // !DNA_HPP

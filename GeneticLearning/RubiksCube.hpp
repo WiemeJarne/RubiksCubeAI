@@ -267,10 +267,8 @@ struct CubeState
 						action = GetRandomAction(generator);
 				}
 
-				for (const char& toAddChar : action)
-				{
-					scrambleString.push_back(toAddChar);
-				}
+				scrambleString += action;
+
 				secondToLastAction = lastAction;
 				lastAction = action;
 				continue;
