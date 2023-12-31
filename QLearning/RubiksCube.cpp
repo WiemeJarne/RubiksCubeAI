@@ -208,7 +208,7 @@ void UseAgent()
 
 int main()
 {
-    TrainAgent(true);
+    TrainAgent(false);
 
     //UseAgent();
 
