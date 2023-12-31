@@ -5,6 +5,7 @@
 #include <chrono>
 #include <windows.h>
 #include <fstream>
+#include <string>
 #include "RubiksCube.hpp"
 #include "GeneticAlgorithm.hpp"
 
@@ -17,7 +18,7 @@ void MoveCursor(int x, int y)
     SetConsoleCursorPosition(h, c);
 }
 
-int SolveCube(bool printScrambe, std::mt19937& generator, const std::string& scramble, int turns)
+int SolveCube(bool printScrambe, std::mt19937& generator, const std::string& scramble, int turns, std::chrono::steady_clock::time_point& timePointHighestFitness)
 {
     CubeState target{};
     int populationMaxSize{ 1000 };
@@ -33,11 +34,11 @@ int SolveCube(bool printScrambe, std::mt19937& generator, const std::string& scr
 
     int generationsOfStagnation{};
 
-    if (printScrambe)
+    /*if (printScrambe)
     {
         std::cout << "To solve scramble: " << algorithm.GetScramble() << '\n';
         std::cout << "Fitness goal: " << algorithm.GetPerfectScore() << '\n';
-    }
+    }*/
 
     while (true)
     {
@@ -45,25 +46,28 @@ int SolveCube(bool printScrambe, std::mt19937& generator, const std::string& scr
         prevBestCube = currBestCube;
         currBestCube = best.GetCubeState();
 
-        MoveCursor(0, 3);
+        //MoveCursor(0, 3);
 
         if (totalGenerations > 2)
         {
             if (highestFitness < best.GetFitness())
+            {
                 highestFitness = best.GetFitness();
+                timePointHighestFitness = std::chrono::high_resolution_clock::now();
+            }
 
-            std::cout << "Best current fitness: " << best.GetFitness() << '\n';
-            std::cout << "Amount of turns: " << best.GetTurns() - std::count(best.GetGenes().begin(), best.GetGenes().begin() + best.GetTurns(), '\'') << '\n';
-            std::cout << "Generation: " << totalGenerations << '\n';
-            std::cout << "Best solve: " << best.GetGenes().substr(0, best.GetTurns()) << '\n';
+            //std::cout << "Best current fitness: " << best.GetFitness() << '\n';
+            //std::cout << "Amount of turns: " << best.GetTurns() - std::count(best.GetGenes().begin(), best.GetGenes().begin() + best.GetTurns(), '\'') << '\n';
+            //std::cout << "Generation: " << totalGenerations << '\n';
+            //std::cout << "Best solve: " << best.GetGenes().substr(0, best.GetTurns()) << '\n';
         }
-        else
+        /*else
         {
             std::cout << "                                                         \n";
             std::cout << "                                                         \n";
             std::cout << "                                                         \n";
             std::cout << "                                                         \n";
-        }
+        }*/
 
         if (!algorithm.GetIsFinnished())
         {
@@ -78,7 +82,7 @@ int SolveCube(bool printScrambe, std::mt19937& generator, const std::string& scr
         }
         else
         {
-            std::cout << "Finnished at generation: " << totalGenerations << '\n';
+            //std::cout << "Finnished at generation: " << totalGenerations << '\n';
 
             //try to solve the cube with the found solution
             CubeState toSolveCube{};
@@ -87,9 +91,9 @@ int SolveCube(bool printScrambe, std::mt19937& generator, const std::string& scr
 
             toSolveCube.Scramble(std::string(best.GetGenes().begin(), best.GetGenes().begin() + turns));
 
-            std::cout << "Genes of best cube: " << best.GetGenes() << '\n';
+            //std::cout << "Genes of best cube: " << best.GetGenes() << '\n';
 
-            std::cout << "Solution was: " << static_cast<char>(toSolveCube == target);
+            //std::cout << "Solution was: " << static_cast<char>(toSolveCube == target);
 
             return highestFitness;
         }
@@ -103,12 +107,16 @@ void WriteResultsToFile(std::ofstream& file, int highestFitness, double duration
     if (!file.is_open())
         return;
 
-    if (attemptNr == 0)
-        file << "\nScramble: " << scramble << '\n';
+    //if (attemptNr == 0)
+        //     file << "\nScramble: " << scramble << '\n';
+    auto durationStr{ std::to_string(duration) };
+    auto dotIterator{ std::find(durationStr.begin(), durationStr.end(), '.') };
+    durationStr.replace(dotIterator, dotIterator + 1, ",");
+    file << '"' << attemptNr << '"' << ';' << '"' << highestFitness << '"' << ';' << '"' << durationStr << '"' << "\n";
 
-    file << "AttemptNr: " << attemptNr << '\n';
-    file << "Highest fitness: " << highestFitness << '\n';
-    file << "Duration: " << duration << '\n';
+    //file << "AttemptNr: " << attemptNr << '\n';
+    //file << "Highest fitness: " << highestFitness << '\n';
+    //file << "Duration: " << duration << '\n';
 }
 
 int main()
@@ -135,7 +143,7 @@ int main()
 
     DNA::SetGenerator(generator);
 
-    std::ofstream outputFile{ "GeneticLearningResults.txt" };
+    std::ofstream outputFile{ "GeneticLearningResults.csv" };
 
     int scrambleNr{};
 
@@ -143,21 +151,25 @@ int main()
 
     int highestFitness{};
 
-    while (scrambleNr < 2)
+    std::chrono::steady_clock::time_point timePointHighestFitness{}; //this is the time point when the highest fitness was reached
+
+    while (scrambleNr < 100)
     {
         int attemptNr{};
 
         std::string scramble{ CubeState().GenerateScramble(turns, generator) };
 
-        while (attemptNr < 5)
+        while (attemptNr < 10)
         {
+            std::cout << "Bussy with scramble " << scrambleNr << " attempt " << attemptNr << '\n';
+
             auto startTime = std::chrono::high_resolution_clock::now();
 
-            highestFitness = SolveCube(false, generator, scramble, turns);
+            highestFitness = SolveCube(false, generator, scramble, turns, timePointHighestFitness);
 
             auto endTime = std::chrono::high_resolution_clock::now();
 
-            auto duration{ std::chrono::duration_cast<std::chrono::duration<double>>((endTime - startTime)).count() };
+            auto duration{ std::chrono::duration_cast<std::chrono::duration<double>>((timePointHighestFitness - startTime)).count() };
 
             WriteResultsToFile(outputFile, highestFitness, duration, attemptNr, scramble);
 
